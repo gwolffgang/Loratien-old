@@ -5,33 +5,8 @@
 
 extern Loratien *game;
 
-void Hex::hoverEnterEvent(QGraphicsSceneHoverEvent *event) {
-    event->ignore();
-}
-
-void Hex::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
-    event->ignore();
-}
-
-void Hex::mousePressEvent(QGraphicsSceneMouseEvent *event) {
-    game->getWindow()->setRightClick(false);
-    game->getWindow()->setLeftClick(false);
-    if (event->button() == Qt::RightButton) game->getWindow()->setRightClick(true);
-    if (event->button() == Qt::LeftButton) game->getWindow()->setLeftClick(true);
-    game->getWindow()->setMousePos(event->pos());
-}
-
-void Hex::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    if (event->button() == Qt::RightButton) game->getWindow()->setRightClick(false);
-    if (event->button() == Qt::LeftButton) game->getWindow()->setLeftClick(false);
-}
-
-void Hex::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-   if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
-}
-
 Hex::Hex(QGraphicsItem *parent) : QGraphicsPolygonItem(parent),
-    col(-1), row(-1), altitude(-99), type(' '),
+    col(-1), row(-1), fertility(0), riverSize(0), altitude(-99), type(' '),
     lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {
@@ -51,8 +26,18 @@ Hex::Hex(QGraphicsItem *parent) : QGraphicsPolygonItem(parent),
     setAcceptHoverEvents(true);
 }
 
+void Hex::evaluateFertility() {
+    QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(col, row, 1, true);
+    for (int k = 0; k < neighbors.size(); k++) fertility += neighbors.at(k)->getRiverSize();
+}
+
+void Hex::evaluateResources() {
+
+}
+
 void Hex::removeRivers() {
     river = false;
+    riverSize = 0;
     if (lineDir1) {
         delete lineDir1;
         lineDir1 = NULL;
@@ -80,10 +65,33 @@ void Hex::removeRivers() {
     QList<River*> rivers = game->getRivers(col, row);
     for (int riverNumber = 0; riverNumber < rivers.size(); riverNumber++) {
         for (int riverPart = 0; riverPart < rivers.at(riverNumber)->getWatercourse()->size(); riverPart++) {
-            Hex *act = rivers.at(riverNumber)->getWatercourse()->at(riverPart);
-            if (act->getCol() == col && act->getRow() == row)
-                rivers.at(riverNumber)->getWatercourse()->removeAt(riverPart);
+            Hex *currentHex = rivers.at(riverNumber)->getWatercourse()->at(riverPart);
+            if (currentHex->getCol() == col && currentHex->getRow() == row) rivers.at(riverNumber)->getWatercourse()->removeAt(riverPart);
         }
     }
 }
 
+void Hex::hoverEnterEvent(QGraphicsSceneHoverEvent *event) {
+    event->ignore();
+}
+
+void Hex::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
+    event->ignore();
+}
+
+void Hex::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+    game->getWindow()->setRightClick(false);
+    game->getWindow()->setLeftClick(false);
+    if (event->button() == Qt::RightButton) game->getWindow()->setRightClick(true);
+    if (event->button() == Qt::LeftButton) game->getWindow()->setLeftClick(true);
+    game->getWindow()->setMousePos(event->pos());
+}
+
+void Hex::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
+    if (event->button() == Qt::RightButton) game->getWindow()->setRightClick(false);
+    if (event->button() == Qt::LeftButton) game->getWindow()->setLeftClick(false);
+}
+
+void Hex::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
+   if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
+}

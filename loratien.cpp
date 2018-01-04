@@ -14,7 +14,9 @@ Loratien::Loratien() : window(new MainWindow), worldWidth(90), worldHeight(60), 
     bridges(new QList<Bridge*>), cities(new QList<City*>), villages(new QList<Village*>)*/ {
 
     // new seed for randomizer
-    srand(unsigned(time(NULL)));
+    unsigned int seed = 0;
+    if (seed != 0) srand(seed);
+    else srand(unsigned(time(NULL)));
 
     // window settings
     window->show();
@@ -25,10 +27,10 @@ Loratien::Loratien() : window(new MainWindow), worldWidth(90), worldHeight(60), 
 QList<River*> Loratien::getRivers(int hexCol, int hexRow) {
     QList<River*> list;
     for (int i = 0; i < game->getRivers()->size(); i++) {
-        River *act = game->getRivers()->at(i);
-        for (int k = 0; k < act->getWatercourse()->size(); k++) {
-            Hex *part = act->getWatercourse()->at(k);
-            if (part->getCol() == hexCol && part->getRow() == hexRow) list.append(act);
+        River *current = game->getRivers()->at(i);
+        for (int k = 0; k < current->getWatercourse()->size(); k++) {
+            Hex *part = current->getWatercourse()->at(k);
+            if (part->getCol() == hexCol && part->getRow() == hexRow) list.append(current);
         }
     }
     return list;

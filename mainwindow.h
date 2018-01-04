@@ -21,18 +21,6 @@ class MainWindow;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
-private:
-    // attributes
-    Ui::MainWindow *ui;
-    QGraphicsScene *scene;
-    QScreen *screen;
-    QString windowTitle;
-    int hexSize;
-    QList<QList<Hex*>> worldMap;
-    GUI *guiMenu, *guiHexInfo;
-    QPointF mousePos;
-    bool rightClick, leftClick;
-
 public:
     // attributes
     QRect desktop;
@@ -47,13 +35,15 @@ public:
     // getter
     inline int getHexSize() {return hexSize;}
     inline bool getLeftClick() {return leftClick;}
+    inline int getMaxRiverSize() {return maxRiverSize;}
     inline QPointF getMousePos() {return mousePos;}
     inline bool getRightClick() {return rightClick;}
 
     // setter
-    inline void setHexSize(int newHexSize) {hexSize = newHexSize;}
+    inline void setHexSize(int newInt) {hexSize = newInt;}
     inline void setLeftClick(bool newBool) {leftClick = newBool;}
-    inline void setMousePos(QPointF newPos) {mousePos = newPos;}
+    inline void setMaxRiverSize(int newInt) {maxRiverSize = newInt;}
+    inline void setMousePos(QPointF newPointF) {mousePos = newPointF;}
     inline void setRightClick(bool newBool) {rightClick = newBool;}
 
     // methods
@@ -61,8 +51,11 @@ public:
     void colorizeWorldMap();
     void constructWorldMap();
     void dragWorldMap(QGraphicsSceneMouseEvent *event);
+    void evaluateHexes();
     void generateWorldMap(QList<QList<int>> *list);
+    QList<Hex*> getHexNeighbors(int hexCol, int hexRow, int radius = 1, bool withOriginHex = false);
     bool neighbor(int mapCol, int modCol, int mapRow, int modRow);
+    void placeCities();
     void placeMountains(QList<QList<int>> *list);
     void placeOceans(QList<QList<int>> *list);
     void placeRivers();
@@ -71,6 +64,18 @@ public:
     void setupGUI();
     void setupWorldMap();
     void doubleUp();
+
+private:
+    // attributes
+    Ui::MainWindow *ui;
+    QGraphicsScene *scene;
+    QScreen *screen;
+    QString windowTitle;
+    int hexSize, maxRiverSize;
+    //QList<QList<Hex*>> worldMap;
+    GUI *guiMenu, *guiHexInfo;
+    QPointF mousePos;
+    bool rightClick, leftClick;
 };
 
 #endif // MAINWINDOW_H

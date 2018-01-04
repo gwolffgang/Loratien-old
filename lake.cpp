@@ -10,79 +10,75 @@ Lake::Lake(Hex *hex) : name("Lake"), dimension(new QList<Hex*>) {
     expandLake();
 }
 
-Hex *Lake::checkRiver(Hex *lowest) {
-    Hex *act = NULL;
+Hex *Lake::checkRiver(Hex *lowestHex) {
+    Hex *currentHex = NULL;
     Hex *rivercheck = NULL;
-    int hexCol = lowest->getCol();
-    int hexRow = lowest->getRow();
-    for (int col = -1; col <= 1; col++) {
-        for (int row = -1; row <= 1; row++) {
-            if (game->getWindow()->neighbor(hexCol, col, hexRow, row)) {
-                act = game->getWorldMap()->at((game->getWorldWidth()+(hexCol+col)) % game->getWorldWidth()).at(hexRow+row);
-                if (!act->getLake() && !act->getRiver() && (!rivercheck || (act->getAltitude() < rivercheck->getAltitude()))) rivercheck = act;
-            }
-        }
+    int hexCol = lowestHex->getCol();
+    int hexRow = lowestHex->getRow();
+    QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(hexCol, hexRow);
+    for (int k = 0; k < neighbors.size(); k++) {
+        currentHex = neighbors.at(k);
+        if (!currentHex->getLake() && !currentHex->getRiver() &&
+            (!rivercheck || (currentHex->getAltitude() < rivercheck->getAltitude())))
+            rivercheck = currentHex;
     }
     return rivercheck;
 }
 
 void Lake::expandLake() {
     bool ended = false;
-    Hex *last = NULL;
+    Hex *previousHex = NULL;
     do {
-        Hex *act = NULL;
-        Hex *lowest = NULL;
-        for (int k = 0; k < dimension->size(); k++) {
-            int hexCol = dimension->at(k)->getCol();
-            int hexRow = dimension->at(k)->getRow();
-            for (int col = -1; col <= 1; col++) {
-                for (int row = -1; row <= 1; row++) {
-                    if (game->getWindow()->neighbor(hexCol, col, hexRow, row)) {
-                        act = game->getWorldMap()->at((game->getWorldWidth()+(hexCol+col)) % game->getWorldWidth()).at(hexRow+row);
-                        if (!act->getLake() && (!lowest || (act->getAltitude() < lowest->getAltitude()))) {
-                            lowest = act;
-                            last = dimension->at(k);
-                        }
-                    }
+        Hex *currentHex = NULL;
+        Hex *lowestHex = NULL;
+        for (int i = 0; i < dimension->size(); i++) {
+            int hexCol = dimension->at(i)->getCol();
+            int hexRow = dimension->at(i)->getRow();
+            QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(hexCol, hexRow);
+            for (int k = 0; k < neighbors.size(); k++) {
+                currentHex = neighbors.at(k);
+                if (!currentHex->getLake() && (!lowestHex || (currentHex->getAltitude() < lowestHex->getAltitude()))) {
+                    lowestHex = currentHex;
+                    previousHex = dimension->at(i);
                 }
             }
         }
-        Hex *rivercheck = checkRiver(lowest);
+        Hex *rivercheck = checkRiver(lowestHex);
         if (rivercheck) {
-            if (lowest->getAltitude() <= rivercheck->getAltitude()) {
-                dimension->append(lowest);
-                lowest->setLake(true);
-                lowest->removeRivers();
+            if (lowestHex->getAltitude() <= rivercheck->getAltitude()) {
+                dimension->append(lowestHex);
+                lowestHex->setLake(true);
+                lowestHex->removeRivers();
             } else {
                 River *newRiver;
-                int lastCol = last->getCol(), lastRow = last->getRow();
-                int nextCol = lowest->getCol(), nextRow = lowest->getRow();
+                int lastCol = previousHex->getCol(), lastRow = previousHex->getRow();
+                int nextCol = lowestHex->getCol(), nextRow = lowestHex->getRow();
                 if (lastCol%2==1) {
                     if (nextCol < lastCol) {
-                        if (nextRow == lastRow) newRiver = new River(last, 6);
-                        else newRiver = new River(last, 5);
+                        if (nextRow == lastRow) newRiver = new River(previousHex, 6);
+                        else newRiver = new River(previousHex, 5);
                     } else if (nextCol == lastCol) {
-                        if (nextRow < lastRow) newRiver = new River(last, 1);
-                        else newRiver = new River(last, 4);
+                        if (nextRow < lastRow) newRiver = new River(previousHex, 1);
+                        else newRiver = new River(previousHex, 4);
                     } else {
-                        if (nextRow == lastRow) newRiver = new River(last, 2);
-                        else newRiver = new River(last, 3);
+                        if (nextRow == lastRow) newRiver = new River(previousHex, 2);
+                        else newRiver = new River(previousHex, 3);
                     }
                 } else {
                     if (nextCol < lastCol) {
-                        if (nextRow < lastRow) newRiver = new River(last, 6);
-                        else newRiver = new River(last, 5);
+                        if (nextRow < lastRow) newRiver = new River(previousHex, 6);
+                        else newRiver = new River(previousHex, 5);
                     } else if (nextCol == lastCol) {
-                        if (nextRow < lastRow) newRiver = new River(last, 1);
-                        else newRiver = new River(last, 4);
+                        if (nextRow < lastRow) newRiver = new River(previousHex, 1);
+                        else newRiver = new River(previousHex, 4);
                     } else {
-                        if (nextRow < lastRow) newRiver = new River(last, 2);
-                        else newRiver = new River(last, 3);
+                        if (nextRow < lastRow) newRiver = new River(previousHex, 2);
+                        else newRiver = new River(previousHex, 3);
                     }
                 }
                 game->getRivers()->append(newRiver);
                 ended = true;
             }
-        }
+        } else ended = true;
     } while (!ended);
 }

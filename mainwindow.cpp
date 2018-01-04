@@ -4,21 +4,19 @@
 
 extern Loratien *game;
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
-    hexSize = 30;
-    springs = new QList<Hex*>;
-    lakes = new QList<Hex*>;
-    guiMenu = guiHexInfo = NULL;
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
+    springs(new QList<Hex*>), lakes(new QList<Hex*>),
+    ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
+    windowTitle("Loratien"), hexSize(20), maxRiverSize(hexSize/4), guiMenu(NULL), guiHexInfo(NULL) {
+
     setMouseTracking(true);
 
     // setup GUI
     ui->setupUi(this);
-    screen = QGuiApplication::primaryScreen();
     desktop = screen->geometry();
-    windowTitle = "Loratien"; setWindowTitle(windowTitle);
+    setWindowTitle(windowTitle);
 
     // setup scene
-    scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, desktop.width()-2, desktop.height()-2);
     ui->view->setBackgroundBrush(QBrush(Qt::black, Qt::SolidPattern));
     ui->view->setScene(scene);
@@ -27,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // Sizing Screen
-    setGeometry(0,0,desktop.width(),desktop.height());
+    setGeometry(0, 0, desktop.width(), desktop.height());
     QMainWindow::showFullScreen();
 }
 
@@ -106,6 +104,16 @@ void MainWindow::dragWorldMap(QGraphicsSceneMouseEvent *event) {
     }
 }
 
+void MainWindow::evaluateHexes() {
+    for (int col = 0; col < game->getWorldMap()->size(); col++) {
+        for (int row = 0; row < game->getWorldMap()->at(col).size(); row++) {
+            Hex *hex = game->getWorldMap()->at(col).at(row);
+            hex->evaluateFertility();
+            hex->evaluateResources();
+        }
+    }
+}
+
 void MainWindow::generateWorldMap(QList<QList<int>> *list) {
     while(list->size() > 0) {
         int next = rand()%list->size();
@@ -149,6 +157,25 @@ void MainWindow::generateWorldMap(QList<QList<int>> *list) {
     }
 }
 
+QList<Hex*> MainWindow::getHexNeighbors(int hexCol, int hexRow, int radius, bool withOriginHex) {
+    QList<Hex*> neighbors;
+    bool worldEarthStyle = game->getWorldEarthStyle();
+    int worldHeight = game->getWorldHeight();
+    int worldWidth = game->getWorldWidth();
+    for (int modCol = -radius; modCol <= radius; modCol++) {
+        for (int modRow = -radius; modRow <= radius; modRow++)  {
+            if ((withOriginHex || modCol != 0 || modRow != 0)
+                && (worldEarthStyle || (!worldEarthStyle && hexCol+modCol > -1 && hexCol+modCol < worldHeight))
+                && hexRow+modRow > -1 && hexRow+modRow < worldHeight
+                && !(hexCol%2==1 && (modRow == -1) && (modCol == -1 || modCol == 1))
+                && !(hexCol%2==0 && (modRow == 1) && (modCol == -1 || modCol == 1))) {
+                    neighbors.append(game->getWorldMap()->at((worldWidth+hexCol+modCol) % worldWidth).at(hexRow+modRow));
+            }
+        }
+    }
+    return neighbors;
+}
+
 bool MainWindow::neighbor(int mapCol, int modCol, int mapRow, int modRow) {
     if ((modCol != 0 || modRow != 0)
         && (game->getWorldEarthStyle() || (!game->getWorldEarthStyle() && mapCol+modCol > -1 && mapCol+modCol < game->getWorldHeight()))
@@ -157,6 +184,10 @@ bool MainWindow::neighbor(int mapCol, int modCol, int mapRow, int modRow) {
         && !(mapCol%2==0 && (modRow == 1) && (modCol == -1 || modCol == 1)))
         return true;
     else return false;
+}
+
+void MainWindow::placeCities() {
+    evaluateHexes();
 }
 
 void MainWindow::placeMountains(QList<QList<int>> *list) {
@@ -266,6 +297,7 @@ void MainWindow::setupWorldMap() {
     generateWorldMap(&list);
     for (int i = 0; i < 5; i++) polishWorldMap();
     placeRivers();
+    placeCities();
     colorizeWorldMap();
     //doubleUp();
 }
