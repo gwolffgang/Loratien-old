@@ -54,7 +54,6 @@ public:
     void evaluateHexes();
     void generateWorldMap(QList<QList<int>> *list);
     QList<Hex*> getHexNeighbors(int hexCol, int hexRow, int radius = 1, bool withOriginHex = false);
-    bool neighbor(int mapCol, int modCol, int mapRow, int modRow);
     void placeCities();
     void placeMountains(QList<QList<int>> *list);
     void placeOceans(QList<QList<int>> *list);

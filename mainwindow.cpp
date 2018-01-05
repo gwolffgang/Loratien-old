@@ -121,19 +121,18 @@ void MainWindow::generateWorldMap(QList<QList<int>> *list) {
         int altCount = 0;
         int hexCol = list->at(next).at(0);
         int hexRow = list->at(next).at(1);
-        for (int col = -2; col <= 2; col++) {
-            for (int row = -2; row <= 2; row++) {
-                if ((game->getWorldEarthStyle() || (!game->getWorldEarthStyle() && hexCol+col > -1 && hexCol+col < game->getWorldWidth())) && hexRow+row > -1 && hexRow+row < game->getWorldHeight()) {
-                    double alt = game->getWorldMap()->at((game->getWorldWidth()+(hexCol+col)) % game->getWorldWidth()).at(hexRow+row)->getAltitude();
-                    if (alt > -90) {
-                        altSum += alt;
-                        altCount++;
-                    } else {
-                        if (alt == -99) {
-                            list->append({(game->getWorldWidth()+(hexCol+col)) % game->getWorldWidth(), hexRow+row});
-                            game->getWorldMap()->at((game->getWorldWidth()+(hexCol+col)) % game->getWorldWidth()).at(hexRow+row)->setAltitude(-98);
-                        }
-                    }
+        Hex *currentHex = NULL;
+        QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(hexCol, hexRow);
+        for (int k = 0; k < neighbors.size(); k++) {
+            currentHex = neighbors.at(k);
+            double alt = currentHex->getAltitude();
+            if (alt > -90) {
+                altSum += alt;
+                altCount++;
+            } else {
+                if (alt == -99) {
+                    list->append({currentHex->getCol(), currentHex->getRow()});
+                    currentHex->setAltitude(-98);
                 }
             }
         }
@@ -176,32 +175,26 @@ QList<Hex*> MainWindow::getHexNeighbors(int hexCol, int hexRow, int radius, bool
     return neighbors;
 }
 
-bool MainWindow::neighbor(int mapCol, int modCol, int mapRow, int modRow) {
-    if ((modCol != 0 || modRow != 0)
-        && (game->getWorldEarthStyle() || (!game->getWorldEarthStyle() && mapCol+modCol > -1 && mapCol+modCol < game->getWorldHeight()))
-        && mapRow+modRow > -1 && mapRow+modRow < game->getWorldWidth()
-        && !(mapCol%2==1 && (modRow == -1) && (modCol == -1 || modCol == 1))
-        && !(mapCol%2==0 && (modRow == 1) && (modCol == -1 || modCol == 1)))
-        return true;
-    else return false;
-}
-
 void MainWindow::placeCities() {
     evaluateHexes();
 }
 
 void MainWindow::placeMountains(QList<QList<int>> *list) {
-    if (game->getWorldAltitudesList()->count(game->getWorldAltMax()) < game->getWorldMountains()) game->setWorldMountains(game->getWorldAltitudesList()->count(game->getWorldAltMax()));
+    QList<int> *AltitudesList = game->getWorldAltitudesList();
+    int MaxAltitude = game->getWorldAltMax();
+    int WorldHeight = game->getWorldHeight();
+    int WorldWidth = game->getWorldWidth();
+    if (AltitudesList->count(MaxAltitude) < game->getWorldMountains()) game->setWorldMountains(AltitudesList->count(MaxAltitude));
     for (int i = 0; i < game->getWorldMountains(); i++) {
         QList<int> hex;
-        hex.append(rand()%game->getWorldWidth());
-        if (!game->getWorldEarthStyle()) hex.append(rand()%game->getWorldHeight());
-        else hex.append(game->getWorldHeight()/4 + (rand() % (game->getWorldHeight()/2)));
-        game->getWorldMap()->at(hex.at(0)).at(hex.at(1))->setAltitude(game->getWorldAltMax());
+        hex.append(rand()%WorldWidth);
+        if (!game->getWorldEarthStyle()) hex.append(rand()%WorldHeight);
+        else hex.append(WorldHeight/4 + (rand() % (WorldHeight/2)));
+        game->getWorldMap()->at(hex.at(0)).at(hex.at(1))->setAltitude(MaxAltitude);
         list->append(hex);
-        for (int i = 0; i < game->getWorldAltitudesList()->size(); i++) {
-            if (game->getWorldAltitudesList()->at(i) == game->getWorldAltMax()) {
-                game->getWorldAltitudesList()->removeAt(i);
+        for (int i = 0; i < AltitudesList->size(); i++) {
+            if (AltitudesList->at(i) == MaxAltitude) {
+                AltitudesList->removeAt(i);
                 break;
             }
         }
@@ -209,16 +202,17 @@ void MainWindow::placeMountains(QList<QList<int>> *list) {
 }
 
 void MainWindow::placeOceans(QList<QList<int> > *list) {
-    if (game->getWorldAltitudesList()->count(game->getWorldAltMin()) < game->getWorldOceans()) game->setWorldOceans(game->getWorldAltitudesList()->count(game->getWorldAltMin()));
+    QList<int> *AltitudesList = game->getWorldAltitudesList();
+    if (AltitudesList->count(game->getWorldAltMin()) < game->getWorldOceans()) game->setWorldOceans(AltitudesList->count(game->getWorldAltMin()));
     for (int i = 0; i < game->getWorldOceans(); i++) {
         QList<int> hex;
         hex.append(rand()%game->getWorldWidth());
         hex.append(rand()%game->getWorldHeight());
         game->getWorldMap()->at(hex.at(0)).at(hex.at(1))->setAltitude(game->getWorldAltMin());
         list->append(hex);
-        for (int i = game->getWorldAltitudesList()->size()-1; i > -1; i--) {
-            if (game->getWorldAltitudesList()->at(i) == game->getWorldAltMin()) {
-                game->getWorldAltitudesList()->removeAt(i);
+        for (int i = AltitudesList->size()-1; i > -1; i--) {
+            if (AltitudesList->at(i) == game->getWorldAltMin()) {
+                AltitudesList->removeAt(i);
                 break;
             }
         }
