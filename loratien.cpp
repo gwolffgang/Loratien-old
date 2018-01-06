@@ -3,10 +3,10 @@
 
 extern Loratien *game;
 
-Loratien::Loratien() : window(new MainWindow), worldWidth(90), worldHeight(60), worldEarthStyle(true),
+Loratien::Loratien() : window(new MainWindow), worldWidth(50), worldHeight(50), worldEarthStyle(false),
     worldAltMax(5), worldAltMin(-4),
     worldMountains(30), worldOceans(10), worldRivers(worldMountains * 3),
-    worldPropPeak(1), worldPropMountainHigh(2), worldPropMountainLow(3),
+    worldPropPeak(0.5), worldPropMountainHigh(2), worldPropMountainLow(3.5),
     worldPropPlainHigh(10), worldPropPlain(13), worldPropPlainLow(1),
     worldPropWaterCoast(1), worldPropWaterDeep(4), worldPropOceanLow(10), worldPropOceanDeep(55),
     worldAltitudesList(new QList<int>), worldMap(new QList<QList<Hex*>>),
@@ -37,9 +37,9 @@ QList<River*> Loratien::getRivers(int hexCol, int hexRow) {
 }
 
 void Loratien::fillAltitudesList() {
-    int worldPropAll = worldPropPeak + worldPropMountainHigh + worldPropMountainLow + worldPropPlainHigh + worldPropPlainLow + worldPropWaterCoast + worldPropWaterDeep + worldPropOceanLow + worldPropOceanDeep;
+    int worldPropAll = worldPropPeak + worldPropMountainHigh + worldPropMountainLow + worldPropPlainHigh + worldPropPlain + worldPropPlainLow + worldPropWaterCoast + worldPropWaterDeep + worldPropOceanLow + worldPropOceanDeep;
     if (worldPropAll == 0) worldPropAll = worldPropPlainLow = 1;
-    double worldHexes = (double) worldHeight * (double) worldWidth / (double) worldPropAll;
+    int worldHexes = (double) worldHeight * (double) worldWidth / (double) worldPropAll;
     for (int i = 0; i < worldHexes * worldPropPeak; i++) worldAltitudesList->append(5);
     for (int i = 0; i < worldHexes * worldPropMountainHigh; i++) worldAltitudesList->append(4);
     for (int i = 0; i < worldHexes * worldPropMountainLow; i++) worldAltitudesList->append(3);

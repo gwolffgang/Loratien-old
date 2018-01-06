@@ -71,7 +71,6 @@ private:
     QScreen *screen;
     QString windowTitle;
     int hexSize, maxRiverSize;
-    //QList<QList<Hex*>> worldMap;
     GUI *guiMenu, *guiHexInfo;
     QPointF mousePos;
     bool rightClick, leftClick;

@@ -14,6 +14,8 @@ River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), d
     center(QPointF(game->getWindow()->getHexSize(), sqrt(3) * 0.5 * game->getWindow()->getHexSize())),
     penRiver(QPen(Qt::blue, 1, Qt::SolidLine)) {
 
+    int worldHeight = game->getWorldHeight();
+    int worldWidth = game->getWorldWidth();
     hex->setRiver(true);
     if (direction != 0) hex->setRiverSize(game->getWindow()->getMaxRiverSize());
     else hex->setRiverSize(1);
@@ -52,11 +54,11 @@ River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), d
     }
     bool ended = false;
     do {
-        Hex *currentHexHex = watercourse->last();
+        Hex *currentHex = watercourse->last();
         Hex *nextHex = nextRiverpartHex(watercourse);
         if (nextHex) {
-            if (nextHex->getAltitude() <= currentHexHex->getAltitude()) {
-                nextHex->setRiverSize(std::max(currentHexHex->getRiverSize(), nextHex->getRiverSize()));
+            if (nextHex->getAltitude() <= currentHex->getAltitude()) {
+                nextHex->setRiverSize(std::max(currentHex->getRiverSize(), nextHex->getRiverSize()));
                 watercourse->append(nextHex);
                 drawRiver();
                 if (nextHex->getAltitude() < 0 || nextHex->getLake() == true) {
@@ -75,7 +77,28 @@ River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), d
                 }
                 ended = true;
             }
-        } else ended = true;
+        } else {
+            if (currentHex->getRow() == 0) {
+                if (!currentHex->getLineDir1()) currentHex->setLineDir1(new QGraphicsLineItem(currentHex));
+                currentHex->getLineDir1()->setLine(QLineF(north, center));
+                currentHex->getLineDir1()->setPen(penRiver);
+            } else if (currentHex->getRow() == worldHeight-1) {
+                if (!currentHex->getLineDir4()) currentHex->setLineDir4(new QGraphicsLineItem(currentHex));
+                currentHex->getLineDir4()->setLine(QLineF(south, center));
+                currentHex->getLineDir4()->setPen(penRiver);
+            } else if (currentHex->getCol() == 0) {
+                Hex *previousHex = watercourse->at(watercourse->size()-1);
+                if (!currentHex->getLineDir6()) currentHex->setLineDir6(new QGraphicsLineItem(currentHex));
+                currentHex->getLineDir6()->setLine(QLineF(northwest, center));
+                currentHex->getLineDir6()->setPen(penRiver);
+            } else if (currentHex->getCol() == worldWidth-1) {
+                Hex *previousHex = watercourse->last();
+                if (!currentHex->getLineDir1()) currentHex->setLineDir1(new QGraphicsLineItem(currentHex));
+                currentHex->getLineDir1()->setLine(QLineF(north, center));
+                currentHex->getLineDir1()->setPen(penRiver);
+            }
+            ended = true;
+        }
     } while (!ended);
 }
 
@@ -90,15 +113,16 @@ QList<Hex*> River::calculateWatercourse(Hex *spring) {
          watercourse->append(part);
      } */
 
+    QList<QList<Hex*>> *worldMap = game->getWorldMap();
     int worldHeight = game->getWorldHeight();
     int worldWidth = game->getWorldWidth();
     bool worldEarthStyle = game->getWorldEarthStyle();
 
     for (int col = 0; col < worldWidth; col++) {
         for (int row = 0; row < worldHeight; row++) {
-            game->getWorldMap()->at(col).at(row)->setTempLink(NULL);
-            game->getWorldMap()->at(col).at(row)->setTempNumber(9999);
-            game->getWorldMap()->at(col).at(row)->setTempUsed(false);
+            worldMap->at(col).at(row)->setTempLink(NULL);
+            worldMap->at(col).at(row)->setTempNumber(9999);
+            worldMap->at(col).at(row)->setTempUsed(false);
         }
     }
     QList<Hex*> hexes, newHexes, waterHexes;
@@ -114,7 +138,7 @@ QList<Hex*> River::calculateWatercourse(Hex *spring) {
                 for (int row = -1; row <= 1; row++) {
                     if ((hexCol+col != 0 || hexRow+row != 0) && (worldEarthStyle || (!worldEarthStyle && hexCol+col > -1 && hexCol+col < worldHeight)) && hexRow+row > -1 && hexRow+row < worldWidth) {
                         if (!(hexCol%2==1 && (row == -1) && (col == -1 || col == 1)) && !(hexCol%2==0 && (row == 1) && (col == -1 || col == 1))) {
-                            currentHex = game->getWorldMap()->at((worldWidth+(hexCol+col)) % worldWidth).at(hexRow+row);
+                            currentHex = worldMap->at((worldWidth+(hexCol+col)) % worldWidth).at(hexRow+row);
                             if (!currentHex->getTempUsed()) {
                                 double possibleTempNumber = currentHex->getAltitude() / game->getWorldAltMax() + hexes.at(i)->getTempNumber();
                                 if (possibleTempNumber < currentHex->getTempNumber()) {
@@ -275,7 +299,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
             if (hexCol%2 == 0) lowestHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow-1);
             else lowestHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow);
             direction = 6;
-        }
+        } else return NULL;
         if ((worldEarthStyle || (!worldEarthStyle && hexCol < worldWidth-1)) && (hexRow > 0 || hexCol%2 == 1)) {
             if (hexCol%2 == 0) currentHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow-1);
             else currentHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow);
@@ -296,7 +320,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
         if (hexRow > 0) {
             lowestHex = worldMap->at(hexCol).at(hexRow-1);
             direction = 1;
-        }
+        } else return NULL;
         if ((worldEarthStyle || (!worldEarthStyle && hexCol < worldWidth-1)) && (hexRow < worldHeight-1 || hexCol%2 == 0)) {
             if (hexCol%2 == 0) currentHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow);
             else currentHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow+1);
@@ -319,7 +343,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
             if (hexCol%2 == 0) lowestHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow-1);
             else lowestHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow);
             direction = 2;
-        }
+        } else return NULL;
         if (hexRow < worldHeight-1) {
             currentHex = worldMap->at(hexCol).at(hexRow+1);
             if (currentHex->getAltitude() < lowestHex->getAltitude() || (currentHex->getAltitude() == lowestHex->getAltitude() && rand()%2 == 0)) {
@@ -341,7 +365,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
             if (hexCol%2 == 0) lowestHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow);
             else lowestHex = worldMap->at((worldWidth+(hexCol+1)) % worldWidth).at(hexRow+1);
             direction = 3;
-        }
+        } else return NULL;
         if ((worldEarthStyle || (!worldEarthStyle && hexCol > 0)) && (hexRow < worldHeight-1 || hexCol%2 == 0)) {
             if (hexCol%2 == 0) currentHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow);
             else currentHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow+1);
@@ -362,7 +386,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
         if (hexRow < worldHeight-1) {
             lowestHex = worldMap->at(hexCol).at(hexRow+1);
             direction = 4;
-        }
+        } else return NULL;
         if ((worldEarthStyle || (!worldEarthStyle && hexCol > 0)) && (hexRow > 0 || hexCol%2 == 1)) {
             if (hexCol%2 == 0) currentHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow-1);
             else currentHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow);
@@ -385,7 +409,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
             if (hexCol%2 == 0) lowestHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow);
             else lowestHex = worldMap->at((worldWidth+(hexCol-1)) % worldWidth).at(hexRow+1);
             direction = 5;
-        }
+        } else return NULL;
         if (hexRow > 0) {
             currentHex = worldMap->at(hexCol).at(hexRow-1);
             if (currentHex->getAltitude() < lowestHex->getAltitude() || (currentHex->getAltitude() == lowestHex->getAltitude() && rand()%2 == 0)) {
