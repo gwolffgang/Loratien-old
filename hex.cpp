@@ -6,7 +6,7 @@
 extern Loratien *game;
 
 Hex::Hex(QGraphicsItem *parent) : QGraphicsPolygonItem(parent),
-    col(-1), row(-1), fertility(0), riverSize(0), altitude(-99), type(' '),
+    col(-1), row(-1), fertility(0), riverSize(0), altitude(-99), type(' '), climate(' '),
     lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {

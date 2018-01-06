@@ -7,7 +7,7 @@ extern Loratien *game;
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     springs(new QList<Hex*>), lakes(new QList<Hex*>),
     ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
-    windowTitle("Loratien"), hexSize(20), maxRiverSize(hexSize/4), guiMenu(NULL), guiHexInfo(NULL) {
+    windowTitle("Loratien"), hexSize(15), maxRiverSize(hexSize/4), guiMenu(NULL), guiHexInfo(NULL) {
 
     setMouseTracking(true);
 
@@ -82,8 +82,6 @@ void MainWindow::constructWorldMap() {
             Hex *hex = new Hex;
             hex->setCol(col);
             hex->setRow(row);
-            hex->setAltitude(-99);
-            hex->setType("");
             hex->setClimate("");
             hex->setPos(hexSize * 1.5 * col, hexSize * sqrt(3) * row + sqrt(3)/2 * hexSize * (col%2));
             hexesCol.append(hex);
@@ -174,7 +172,7 @@ QList<Hex*> MainWindow::getHexNeighbors(int hexCol, int hexRow, int radius, bool
     for (int modCol = -radius; modCol <= radius; modCol++) {
         for (int modRow = -radius; modRow <= radius; modRow++)  {
             if ((withOriginHex || modCol != 0 || modRow != 0)
-                && (worldEarthStyle || (!worldEarthStyle && hexCol+modCol > -1 && hexCol+modCol < worldHeight))
+                && (worldEarthStyle || (!worldEarthStyle && hexCol+modCol > -1 && hexCol+modCol < worldWidth))
                 && hexRow+modRow > -1 && hexRow+modRow < worldHeight
                 && !(radius == 1 && hexCol%2 == 1 && modRow == -1 && std::abs(modCol) == 1)
                 && !(radius == 1 && hexCol%2 == 0 && modRow == 1 && std::abs(modCol) == 1)

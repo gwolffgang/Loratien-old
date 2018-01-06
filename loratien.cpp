@@ -3,9 +3,9 @@
 
 extern Loratien *game;
 
-Loratien::Loratien() : window(new MainWindow), worldWidth(50), worldHeight(50), worldEarthStyle(false),
+Loratien::Loratien() : window(new MainWindow), worldWidth(60), worldHeight(40), worldEarthStyle(false),
     worldAltMax(5), worldAltMin(-4),
-    worldMountains(30), worldOceans(10), worldRivers(worldMountains * 3),
+    worldMountains(30), worldOceans(10), worldRivers(worldMountains * 2),
     worldPropPeak(0.5), worldPropMountainHigh(2), worldPropMountainLow(3.5),
     worldPropPlainHigh(10), worldPropPlain(13), worldPropPlainLow(1),
     worldPropWaterCoast(1), worldPropWaterDeep(4), worldPropOceanLow(10), worldPropOceanDeep(55),
