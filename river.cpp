@@ -79,23 +79,74 @@ River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), d
             }
         } else {
             if (currentHex->getRow() == 0) {
+                watercourse->append(currentHex);
                 if (!currentHex->getLineDir1()) currentHex->setLineDir1(new QGraphicsLineItem(currentHex));
                 currentHex->getLineDir1()->setLine(QLineF(north, center));
                 currentHex->getLineDir1()->setPen(penRiver);
             } else if (currentHex->getRow() == worldHeight-1) {
+                watercourse->append(currentHex);
                 if (!currentHex->getLineDir4()) currentHex->setLineDir4(new QGraphicsLineItem(currentHex));
                 currentHex->getLineDir4()->setLine(QLineF(south, center));
                 currentHex->getLineDir4()->setPen(penRiver);
             } else if (currentHex->getCol() == 0) {
-                Hex *previousHex = watercourse->at(watercourse->size()-1);
-                if (!currentHex->getLineDir6()) currentHex->setLineDir6(new QGraphicsLineItem(currentHex));
-                currentHex->getLineDir6()->setLine(QLineF(northwest, center));
-                currentHex->getLineDir6()->setPen(penRiver);
+                watercourse->append(currentHex);
+                if (direction == 4 || direction == 5) {
+                    if (direction == 4) {
+                        if (!currentHex->getLineDir1()) currentHex->setLineDir1(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir1()->setLine(QLineF(north, center));
+                        currentHex->getLineDir1()->setPen(penRiver);
+                    } else {
+                        if (!currentHex->getLineDir2()) currentHex->setLineDir2(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir2()->setLine(QLineF(northeast, center));
+                        currentHex->getLineDir2()->setPen(penRiver);
+                    }
+                    if (!currentHex->getLineDir5()) currentHex->setLineDir5(new QGraphicsLineItem(currentHex));
+                    currentHex->getLineDir5()->setLine(QLineF(southwest, center));
+                    currentHex->getLineDir5()->setPen(penRiver);
+                } else { // direction 1 or 6
+                    if (direction == 1) {
+                        if (!currentHex->getLineDir4()) currentHex->setLineDir4(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir4()->setLine(QLineF(south, center));
+                        currentHex->getLineDir4()->setPen(penRiver);
+                    } else {
+                        if (!currentHex->getLineDir3()) currentHex->setLineDir3(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir3()->setLine(QLineF(southeast, center));
+                        currentHex->getLineDir3()->setPen(penRiver);
+                    }
+                    if (!currentHex->getLineDir6()) currentHex->setLineDir6(new QGraphicsLineItem(currentHex));
+                    currentHex->getLineDir6()->setLine(QLineF(northwest, center));
+                    currentHex->getLineDir6()->setPen(penRiver);
+                }
             } else if (currentHex->getCol() == worldWidth-1) {
-                Hex *previousHex = watercourse->last();
-                if (!currentHex->getLineDir1()) currentHex->setLineDir1(new QGraphicsLineItem(currentHex));
-                currentHex->getLineDir1()->setLine(QLineF(north, center));
-                currentHex->getLineDir1()->setPen(penRiver);
+                watercourse->append(currentHex);
+                if (direction == 3 || direction == 4) {
+                    if (direction == 3) {
+                        if (!currentHex->getLineDir6()) currentHex->setLineDir6(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir6()->setLine(QLineF(northwest, center));
+                        currentHex->getLineDir6()->setPen(penRiver);
+                    } else {
+                        if (!currentHex->getLineDir1()) currentHex->setLineDir1(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir1()->setLine(QLineF(north, center));
+                        currentHex->getLineDir1()->setPen(penRiver);
+                    }
+                    if (!currentHex->getLineDir3()) currentHex->setLineDir3(new QGraphicsLineItem(currentHex));
+                    currentHex->getLineDir3()->setLine(QLineF(southeast, center));
+                    currentHex->getLineDir3()->setPen(penRiver);
+                } else { // direction 1 or 2
+                    if (direction == 1) {
+                        if (!currentHex->getLineDir4()) currentHex->setLineDir4(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir4()->setLine(QLineF(south, center));
+                        currentHex->getLineDir4()->setPen(penRiver);
+                    } else {
+                        if (!currentHex->getLineDir5()) currentHex->setLineDir5(new QGraphicsLineItem(currentHex));
+                        currentHex->getLineDir5()->setLine(QLineF(southwest, center));
+                        currentHex->getLineDir5()->setPen(penRiver);
+                    }
+
+                    if (!currentHex->getLineDir2()) currentHex->setLineDir2(new QGraphicsLineItem(currentHex));
+                    currentHex->getLineDir2()->setLine(QLineF(northeast, center));
+                    currentHex->getLineDir2()->setPen(penRiver);
+                }
             }
             ended = true;
         }
@@ -252,6 +303,8 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
     QList<Hex*> choose_from;
     int hexCol = previousHex->getCol();
     int hexRow = previousHex->getRow();
+    if (hexCol == 0 || hexRow == 0 || hexCol == worldWidth-1 || hexRow == worldHeight-1)
+        return NULL;
     switch (direction) {
     case 0: { // undecided yet
         QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(hexCol, hexRow);

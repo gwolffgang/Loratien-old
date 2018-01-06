@@ -75,9 +75,9 @@ void MainWindow::colorizeWorldMap() {
 }
 
 void MainWindow::constructWorldMap() {
-    QList<Hex*> hexesListCol;
+    QList<Hex*> hexesCol;
     for (int col = 0; col < game->getWorldWidth(); col++) {
-        hexesListCol.clear();
+        hexesCol.clear();
         for (int row = 0; row < game->getWorldHeight(); row++) {
             Hex *hex = new Hex;
             hex->setCol(col);
@@ -86,11 +86,11 @@ void MainWindow::constructWorldMap() {
             hex->setType("");
             hex->setClimate("");
             hex->setPos(hexSize * 1.5 * col, hexSize * sqrt(3) * row + sqrt(3)/2 * hexSize * (col%2));
-            hexesListCol.append(hex);
+            hexesCol.append(hex);
             scene->addItem(hex);
         }
         // add row to worldMap
-        game->getWorldMap()->append(hexesListCol);
+        game->getWorldMap()->append(hexesCol);
     }
 }
 
@@ -235,9 +235,14 @@ void MainWindow::placeOceans(QList<QList<int> > *list) {
 void MainWindow::placeRivers() {
     while (game->getWorldRivers() < springs->size()) springs->removeAt(rand()%springs->size());
     while (springs->size() > 0) {
-        if (!springs->at(0)->getLake() && !springs->at(0)->getRiver()) {
-            River *river = new River(springs->at(0));
-            game->getRivers()->append(river);
+        Hex *spring = springs->at(0);
+        int hexCol = spring->getCol();
+        int hexRow = spring->getRow();
+        if (!spring->getLake() && !spring->getRiver()) {
+            if (hexCol != 0 && hexRow != 0 && hexCol != game->getWorldWidth()-1 && hexRow != game->getWorldHeight()-1) {
+                River *river = new River(spring);
+                game->getRivers()->append(river);
+            }
         }
         springs->removeAt(0);
     }
