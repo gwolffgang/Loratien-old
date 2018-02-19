@@ -303,7 +303,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
     QList<Hex*> choose_from;
     int hexCol = previousHex->getCol();
     int hexRow = previousHex->getRow();
-    if (hexCol == 0 || hexRow == 0 || hexCol == worldWidth-1 || hexRow == worldHeight-1)
+    if (!worldEarthStyle && ((hexCol == 0 || hexCol == worldWidth-1) || hexRow == 0 || hexRow == worldHeight-1))
         return NULL;
     switch (direction) {
     case 0: { // undecided yet

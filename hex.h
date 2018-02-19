@@ -25,6 +25,7 @@ public:
     inline bool getRiver() {return river;}
     inline int getRiverSize() {return riverSize;}
     inline int getRow() {return row;}
+    inline int getTectonicPlate() {return tectonicPlate;}
     inline Hex *getTempLink() {return tempLink;}
     inline double getTempNumber() {return tempNumber;}
     inline bool getTempUsed() {return tempUsed;}
@@ -45,6 +46,7 @@ public:
     inline void setRiver(bool newBool) {river = newBool;}
     inline void setRiverSize(int newSize) {riverSize = newSize;}
     inline void setRow(int newRow) {row = newRow;}
+    inline void setTectonicPlate(int newPlate) {tectonicPlate = newPlate;}
     inline void setTempLink(Hex *temporaryLink) {tempLink = temporaryLink;}
     inline void setTempNumber(double temporaryNumber) {tempNumber = temporaryNumber;}
     inline void setTempUsed(bool temporaryUsage) {tempUsed = temporaryUsage;}
@@ -65,7 +67,7 @@ protected:
 
 private:
     // variables
-    int col, row, fertility, riverSize;
+    int col, row, tectonicPlate, fertility, riverSize;
     double altitude;
     QString type, climate;
     bool lake, river;

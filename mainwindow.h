@@ -33,6 +33,7 @@ public:
     ~MainWindow();
 
     // getter
+    QList<Hex*> getHexNeighbors(int hexCol, int hexRow, int radius = 1, bool withOriginHex = false);
     inline int getHexSize() {return hexSize;}
     inline bool getLeftClick() {return leftClick;}
     inline int getMaxRiverSize() {return maxRiverSize;}
@@ -47,22 +48,19 @@ public:
     inline void setRightClick(bool newBool) {rightClick = newBool;}
 
     // methods
-    int calculateAltitude(int altFactor);
+    void colorizePlates();
     void colorizeWorldMap();
     void constructWorldMap();
     void dragWorldMap(QGraphicsSceneMouseEvent *event);
     void evaluateHexes();
-    void generateWorldMap(QList<QList<int>> *list);
-    QList<Hex*> getHexNeighbors(int hexCol, int hexRow, int radius = 1, bool withOriginHex = false);
+    void generateWorldMap();
     void placeCities();
-    void placeMountains(QList<QList<int>> *list);
-    void placeOceans(QList<QList<int>> *list);
     void placeRivers();
     void polishWorldMap();
     void repositionGUI(int offspringX, int offspringY);
     void setupGUI();
     void setupWorldMap();
-    void doubleUp();
+    void translateValuesToWorldMap();
 
 private:
     // attributes
@@ -71,6 +69,7 @@ private:
     QScreen *screen;
     QString windowTitle;
     int hexSize, maxRiverSize;
+    double oceanPercentage;
     GUI *guiMenu, *guiHexInfo;
     QPointF mousePos;
     bool rightClick, leftClick;

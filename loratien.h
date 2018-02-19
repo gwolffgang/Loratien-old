@@ -18,11 +18,8 @@ private:
     MainWindow *window;
     int hexSize, worldWidth, worldHeight;
     bool worldEarthStyle;
-    int worldAltMax, worldAltMin;
-    int worldMountains, worldOceans, worldRivers;
-    double worldPropPeak, worldPropMountainHigh, worldPropMountainLow, worldPropPlainHigh, worldPropPlain, worldPropPlainLow,
-           worldPropWaterCoast, worldPropWaterDeep, worldPropOceanLow, worldPropOceanDeep;
-    QList<int> *worldAltitudesList;
+    int worldAltMax, worldAltMin, worldRivers, worldTectonicPlates;
+    QList<QList<Hex*>> *worldTectonicPlatesList;
     QList<QList<Hex*>> *worldMap;
     QList<River*> *rivers;
     QList<Lake*> *lakes;
@@ -41,24 +38,17 @@ public:
     inline QList<River*> *getRivers() {return rivers;}
     QList<River*> getRivers(int hexCol, int hexRow);
     inline MainWindow *getWindow() {return window;}
-    inline QList<int> *getWorldAltitudesList() {return worldAltitudesList;}
     inline int getWorldAltMax() {return worldAltMax;}
     inline int getWorldAltMin() {return worldAltMin;}
     inline bool getWorldEarthStyle() {return worldEarthStyle;}
     inline int getWorldHeight() {return worldHeight;}
     inline QList<QList<Hex*>> *getWorldMap() {return worldMap;}
-    inline int getWorldMountains() {return worldMountains;}
-    inline int getWorldOceans() {return worldOceans;}
     inline int getWorldRivers() {return worldRivers;}
+    inline int getWorldTectonicPlates() {return worldTectonicPlates;}
+    inline QList<QList<Hex*>> *getWorldTectonicPlatesList() {return worldTectonicPlatesList;}
     inline int getWorldWidth() {return worldWidth;}
 
-    // setter
-    inline void setHexSize(int newHexSize) {if (newHexSize > 0) hexSize = newHexSize;}
-    inline void setWorldMountains(int newAmount) {worldMountains = newAmount;}
-    inline void setWorldOceans(int newAmount) {worldOceans = newAmount;}
-
     // methods
-    void fillAltitudesList();
     void setupGame();
 };
 
