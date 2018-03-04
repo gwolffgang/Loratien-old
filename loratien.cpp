@@ -3,8 +3,8 @@
 
 extern Loratien *game;
 
-Loratien::Loratien() : window(new MainWindow), worldWidth(700), worldHeight(300), worldEarthStyle(true),
-    worldAltMax(10), worldAltMin(-10), worldRivers(2), worldTectonicPlates(10),
+Loratien::Loratien() : window(new MainWindow), worldWidth(200), worldHeight(200), worldEarthStyle(true),
+    worldAltMax(10), worldAltMin(-10), worldRivers(worldWidth*worldHeight * 0.003), worldTectonicPlates(10),
     worldTectonicPlatesList(new QList<QList<Hex*>>), worldMap(new QList<QList<Hex*>>),
     rivers(new QList<River*>), lakes(new QList<Lake*>), group(new Group) /*,
     bridges(new QList<Bridge*>), cities(new QList<City*>), villages(new QList<Village*>)*/ {

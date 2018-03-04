@@ -38,6 +38,7 @@ public:
     inline bool getLeftClick() {return leftClick;}
     inline int getMaxRiverSize() {return maxRiverSize;}
     inline QPointF getMousePos() {return mousePos;}
+    double getPercentAlt(double percent);
     inline bool getRightClick() {return rightClick;}
 
     // setter
@@ -69,7 +70,7 @@ private:
     QScreen *screen;
     QString windowTitle;
     int hexSize, maxRiverSize;
-    double oceanPercentage;
+    double percentMountain, percentOcean;
     GUI *guiMenu, *guiHexInfo;
     QPointF mousePos;
     bool rightClick, leftClick;

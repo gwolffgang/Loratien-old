@@ -17,8 +17,10 @@ public:
     inline QList<Hex*> *getDimension() {return dimension;}
 
     // methods
+    bool addExistingLakeOf(Hex *hex);
     Hex *checkRiver(Hex *lowest);
     void expandLake();
+    bool isAlreadyInThisLake(Hex *hex);
 };
 
 #endif // LAKE_H

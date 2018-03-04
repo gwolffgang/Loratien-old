@@ -4,10 +4,10 @@
 
 extern Loratien *game;
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
-    springs(new QList<Hex*>), lakes(new QList<Hex*>),
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), springs(new QList<Hex*>), lakes(new QList<Hex*>),
     ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
-    windowTitle("Loratien"), hexSize(3), maxRiverSize(hexSize/4), oceanPercentage(0.69), guiMenu(NULL), guiHexInfo(NULL) {
+    windowTitle("Loratien"), hexSize(20), maxRiverSize(hexSize/4), percentMountain(0.12), percentOcean(0.65),
+    guiMenu(NULL), guiHexInfo(NULL) {
 
     setMouseTracking(true);
 
@@ -57,6 +57,20 @@ QList<Hex*> MainWindow::getHexNeighbors(int hexCol, int hexRow, int radius, bool
     return neighbors;
 }
 
+double MainWindow::getPercentAlt(double percent) {
+    if (percent > 1.0) percent = 1.0;
+    else if (percent < 0.0) percent = 0.0;
+    QList<double> list;
+    for (int x = 0; x < game->getWorldWidth(); x++) {
+        for (int y = 0; y < game->getWorldHeight(); y++) {
+            list.append(game->getWorldMap()->at(x).at(y)->getAltitude());
+        }
+    }
+    std::stable_sort(list.begin(), list.end());
+    int elem = (list.size()-1)*percent;
+    return list.at(elem);
+}
+
 void MainWindow::colorizePlates() {
     QList<QList<Hex*>> *worldMap = game->getWorldMap();
     for (int col = 0; col < game->getWorldWidth(); col++) {
@@ -73,6 +87,9 @@ void MainWindow::colorizePlates() {
 void MainWindow::colorizeWorldMap() {
     int minAlt = game->getWorldAltMin();
     int maxAlt = game->getWorldAltMax();
+    double snowLevel = getPercentAlt(1-((1-percentOcean) * 0.02));
+    double mountainLevel = getPercentAlt(1-((1-percentOcean) * percentMountain));
+    double waterLevel = getPercentAlt(percentOcean);
     QList<QList<Hex*>> *worldMap = game->getWorldMap();
     for (int col = 0; col < worldMap->size(); col++) {
         for (int row = 0; row < worldMap->at(col).size(); row++) {
@@ -80,16 +97,16 @@ void MainWindow::colorizeWorldMap() {
             if (!worldMap->at(col).at(row)->getLake()) {
                 int paint = 0;
                 double alt = worldMap->at(col).at(row)->getAltitude();
-                if (alt >= 0.95*maxAlt) {
+                if (alt >= snowLevel) {
                     brush.setColor(Qt::white);
-                } else if (alt >= 0.80*maxAlt) {
-                    paint = (100 + 150 * ((alt - 0.80*maxAlt) / (0.20*maxAlt)));
+                } else if (alt >= mountainLevel) {
+                    paint = 100 + 150 * ((alt - mountainLevel) / (maxAlt-mountainLevel));
                     brush.setColor(QColor(paint, paint, paint));
                 } else if (alt >= 0) {
-                    paint = (255 - 200 * (alt / (0.80*maxAlt)));
+                    paint = 255 - 200 * (alt / (mountainLevel-waterLevel));
                     brush.setColor(QColor(0, paint, 0));
                 } else {
-                    paint = (255 - 255 * (alt / minAlt));
+                    paint = 255 - 255 * (alt / minAlt);
                     brush.setColor(QColor(0, 0, paint));
                 }
             } else brush.setColor(Qt::blue);
@@ -187,9 +204,19 @@ void MainWindow::placeCities() {
 }
 
 void MainWindow::placeRivers() {
+    double maxAlt = getPercentAlt(1);
+    double minAlt = getPercentAlt(0.99);
+    for (int col = 0; col < game->getWorldWidth(); col++) {
+        for (int row = 0; row < game->getWorldHeight(); row++) {
+            Hex *currentHex = game->getWorldMap()->at(col).at(row);
+            double currentAlt = currentHex->getAltitude();
+            if (currentAlt >= minAlt && maxAlt >= currentAlt) springs->append(currentHex);
+        }
+    }
     while (game->getWorldRivers() < springs->size()) springs->removeAt(rand()%springs->size());
     while (springs->size() > 0) {
-        Hex *spring = springs->at(0);
+        int nextHex = rand()%springs->size();
+        Hex *spring = springs->at(nextHex);
         int hexCol = spring->getCol();
         int hexRow = spring->getRow();
         if (!spring->getLake() && !spring->getRiver()) {
@@ -198,7 +225,7 @@ void MainWindow::placeRivers() {
                 game->getRivers()->append(river);
             }
         }
-        springs->removeAt(0);
+        springs->removeAt(nextHex);
     }
 }
 
@@ -210,7 +237,7 @@ void MainWindow::polishWorldMap() {
     int minAltitude = game->getWorldAltMin();
     int worldHeight = game->getWorldHeight();
     int worldWidth = game->getWorldWidth();
-    double alt = 0.0, highest = 0.0, lowest = 0.0;
+    double alt = 0.0;
     int count = 0;
     springs->clear();
     for (int worldCol = 0; worldCol < worldWidth; worldCol++) {
@@ -229,22 +256,21 @@ void MainWindow::polishWorldMap() {
             }
             alt += count * unpolished.at(worldCol).at(worldRow)->getAltitude();
             count = count * 2;
-            double newAlt = alt/count;
-            worldMap->at(worldCol).at(worldRow)->setAltitude(newAlt);
-            if (highest < alt/count) highest = newAlt;
-            if (lowest > alt/count) lowest = newAlt;
+            worldMap->at(worldCol).at(worldRow)->setAltitude(alt/count);
         }
     }
     double stretchHigh = 0.0;
-    double stretchLow = 0.0;
+    double highest = getPercentAlt(1);
     if (highest != 0) stretchHigh = maxAltitude / highest;
+    double stretchLow = 0.0;
+    double lowest = getPercentAlt(0);
     if (lowest != 0) stretchLow = minAltitude / lowest;
     for (int worldCol = 0; worldCol < worldWidth; worldCol++) {
         for (int worldRow = 0; worldRow < worldHeight; worldRow++) {
             double newAlt = worldMap->at(worldCol).at(worldRow)->getAltitude();
             if (newAlt > 0) {
-                worldMap->at(worldCol).at(worldRow)->setAltitude(newAlt * stretchHigh);
-                if (maxAltitude-0.5 > newAlt * stretchHigh &&  newAlt * stretchHigh >= maxAltitude-1.5) springs->append(worldMap->at(worldCol).at(worldRow));
+                double stretchedHeight = newAlt * stretchHigh;
+                worldMap->at(worldCol).at(worldRow)->setAltitude(stretchedHeight);
             } else worldMap->at(worldCol).at(worldRow)->setAltitude(newAlt * stretchLow);
         }
     }
@@ -271,8 +297,8 @@ void MainWindow::setupWorldMap() {
     #endif
     generateWorldMap();
     translateValuesToWorldMap();
-    for (int i = 0; i < 2; i++) polishWorldMap();
-    //placeRivers();
+    for (int i = 0; i < 3; i++) polishWorldMap();
+    placeRivers();
     //placeCities();
     //colorizePlates();
     colorizeWorldMap();
@@ -282,17 +308,9 @@ void MainWindow::setupWorldMap() {
 }
 
 void MainWindow::translateValuesToWorldMap() {
-    QList<double> list;
-    for (int x = 0; x < game->getWorldWidth(); x++) {
-        for (int y = 0; y < game->getWorldHeight(); y++) {
-            list.append(game->getWorldMap()->at(x).at(y)->getAltitude());
-        }
-    }
-    std::stable_sort(list.begin(), list.end());
-    int elem = list.size()*oceanPercentage;
-    double waterLevel = list.at(elem);
-    double minValue = list.first() - waterLevel;
-    double maxValue = list.last() - waterLevel;
+    double waterLevel = getPercentAlt(percentOcean);
+    double minValue = getPercentAlt(0.0);
+    double maxValue = getPercentAlt(1.0);
     for (int x = 0; x < game->getWorldWidth(); x++) {
         for (int y = 0; y < game->getWorldHeight(); y++) {
             double alt = game->getWorldMap()->at(x).at(y)->getAltitude() - waterLevel;

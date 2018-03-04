@@ -38,35 +38,16 @@ void Hex::evaluateResources() {
 void Hex::removeRivers() {
     river = false;
     riverSize = 0;
-    if (lineDir1) {
-        delete lineDir1;
-        lineDir1 = NULL;
-    }
-    if (lineDir2) {
-        delete lineDir2;
-        lineDir2 = NULL;
-    }
-    if (lineDir3) {
-        delete lineDir3;
-        lineDir3 = NULL;
-    }
-    if (lineDir4) {
-        delete lineDir4;
-        lineDir4 = NULL;
-    }
-    if (lineDir5) {
-        delete lineDir5;
-        lineDir5 = NULL;
-    }
-    if (lineDir6) {
-        delete lineDir6;
-        lineDir6 = NULL;
-    }
-    QList<River*> rivers = game->getRivers(col, row);
-    for (int riverNumber = 0; riverNumber < rivers.size(); riverNumber++) {
-        for (int riverPart = 0; riverPart < rivers.at(riverNumber)->getWatercourse()->size(); riverPart++) {
-            Hex *currentHex = rivers.at(riverNumber)->getWatercourse()->at(riverPart);
-            if (currentHex->getCol() == col && currentHex->getRow() == row) rivers.at(riverNumber)->getWatercourse()->removeAt(riverPart);
+    if (lineDir1) { delete lineDir1; lineDir1 = NULL; }
+    if (lineDir2) { delete lineDir2; lineDir2 = NULL; }
+    if (lineDir3) { delete lineDir3; lineDir3 = NULL; }
+    if (lineDir4) { delete lineDir4; lineDir4 = NULL; }
+    if (lineDir5) { delete lineDir5; lineDir5 = NULL; }
+    if (lineDir6) { delete lineDir6; lineDir6 = NULL; }
+    foreach (River *river, game->getRivers(col, row)) {
+        for (int riverPart = 0; riverPart < river->getWatercourse()->size(); riverPart++) {
+            Hex *part = river->getWatercourse()->at(riverPart);
+            if (part->getCol() == col && part->getRow() == row) river->getWatercourse()->removeAt(riverPart);
         }
     }
 }
