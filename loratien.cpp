@@ -10,7 +10,7 @@ Loratien::Loratien() : window(new MainWindow), worldWidth(400), worldHeight(200)
     bridges(new QList<Bridge*>), cities(new QList<City*>), villages(new QList<Village*>)*/ {
 
     // new seed for randomizer
-    unsigned int seed = 1;
+    unsigned int seed = 0;
     if (seed != 0) srand(seed);
     else srand(unsigned(time(NULL)));
 

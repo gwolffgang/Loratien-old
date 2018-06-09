@@ -6,7 +6,7 @@ extern Loratien *game;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), springs(new QList<Hex*>), lakes(new QList<Hex*>),
     ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
-    windowTitle("Loratien"), hexSize(10), maxRiverSize(hexSize/4), percentMountain(0.12), percentOcean(0.65),
+    windowTitle("Loratien"), hexSize(5), maxRiverSize(hexSize/4), percentMountain(0.12), percentOcean(0.65),
     guiMenu(NULL), guiHexInfo(NULL) {
 
     setMouseTracking(true);
@@ -143,7 +143,8 @@ void MainWindow::generateWorldMap() {
         currentHex = worldMap->at(hexCol).at(hexRow);
         if (-1 == currentHex->getTectonicPlate()) {
             currentHex->setTectonicPlate(k);
-            currentHex->setAltitude(rand()%50 + 6);
+            currentHex->setTectonicDirection(rand()%6+1);
+            currentHex->setAltitude(rand()%20 + 6);
             hexesList.append(currentHex);
         } else k--;
     }
@@ -164,6 +165,7 @@ void MainWindow::generateWorldMap() {
             } else if (currentAlt == -99) {
                     hexesList.append(currentHex);
                     currentHex->setTectonicPlate(nextHex->getTectonicPlate());
+                    currentHex->setTectonicDirection(nextHex->getTectonicDirection());
                     currentHex->setAltitude(-95);
                 }
         }
@@ -271,16 +273,82 @@ void MainWindow::setupWorldMap() {
         QApplication::setOverrideCursor(Qt::WaitCursor);
     #endif
     generateWorldMap();
-    //for (int times = 0; times < 3; times++) moveTectonicPlates();
+    simulateTectonicMovement(4);
     translateValuesToWorldMap();
     for (int times = 0; times < 3; times++) polishWorldMap();
-    placeRivers();
+    //placeRivers();
     //placeCities();
     colorizePlates();
     colorizeWorldMap();
     #ifndef QT_NO_CURSOR
         QApplication::restoreOverrideCursor();
 #endif
+}
+
+void MainWindow::simulateTectonicMovement(int range) {
+    QList<QList<Hex*>> *worldMap = game->getWorldMap();
+    bool earthStyle = game->getWorldEarthStyle();
+    int worldHeight = game->getWorldHeight();
+    int worldWidth = game->getWorldWidth();
+    Hex *currentHex = NULL;
+    Hex *neighborHex = NULL;
+    for (int col = 0; col < game->getWorldWidth(); col++) {
+        for (int row = 0; row < game->getWorldHeight(); row++) {
+            currentHex = worldMap->at(col).at(row);
+            currentHex->setTempNumber(-999);
+            neighborHex = NULL;
+            int neighborCol = col, neighborRow = row;
+            switch (currentHex->getTectonicDirection()) {
+            case 1:
+                neighborRow = row - range;
+                break;
+            case 2:
+                neighborCol = col + range;
+                neighborRow = row-ceil((double)range/2)+(col%2)*(range%2);
+                break;
+            case 3:
+                neighborCol = col + range;
+                neighborRow = row+range/2+(col%2)*(range%2);
+                break;
+            case 4:
+                neighborRow = row + range;
+                break;
+            case 5:
+                neighborCol = col - range;
+                neighborRow = row+range/2+(col%2)*(range%2);
+                break;
+            case 6:
+                neighborCol = col - range;
+                neighborRow = row-ceil((double)range/2)+(col%2)*(range%2);
+            }
+            if ((earthStyle || (-1 < neighborCol && neighborCol < worldWidth)) && -1 < neighborRow && neighborRow < worldHeight) {
+                neighborHex = worldMap->at((worldWidth+neighborCol)%worldWidth).at(neighborRow);
+                if (currentHex->getTectonicDirection() != neighborHex->getTectonicDirection())
+                    currentHex->setAltitude(range/2*(currentHex->getAltitude()+neighborHex->getAltitude()));
+            }
+        }
+    }
+
+/*    QList<QList<Hex*>> *worldMap = game->getWorldMap();
+    QList<Hex*> currentPlate;
+    for (int plate = 0; plate < game->getWorldTectonicPlates(); plate++) {
+        for (int col = 0; col < game->getWorldWidth(); col++) {
+            for (int row = 0; row < game->getWorldHeight(); row++) {
+                Hex *currentHex = worldMap->at(col).at(row);
+                currentHex->setTempNumber(-99);
+                if (currentHex->getTectonicPlate() == plate) {
+                    foreach (Hex* neighbor, currentHex->getNeighborHexes(2)) {
+                        if (neighbor->getTectonicPlate() != plate) {
+                            currentHex->setTempNumber(std::max(currentHex->getTempNumber(),neighbor->getAltitude()));
+                            currentPlate.append(currentHex);
+                            currentHex->setAltitude(currentHex->getAltitude() + currentHex->getTempNumber());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }*/
 }
 
 void MainWindow::translateValuesToWorldMap() {

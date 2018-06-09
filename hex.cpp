@@ -6,33 +6,28 @@
 extern Loratien *game;
 
 Hex::Hex(QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
-    col(-1), row(-1), tectonicPlate(-1), fertility(0), riverSize(0), altitude(-99), type(' '), climate(' '),
-    lake(false), river(false),
+    col(-1), row(-1), tectonicPlate(-1), tectonicDirection(-1), fertility(0), riverSize(0), altitude(-99),
+    type(' '), climate(' '), lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {
     setAcceptHoverEvents(true); // allow special mouse events
 }
 
 QList<Hex*> Hex::getNeighborHexes(int radius, bool withOriginHex) {
-    if (radius < 1) radius = 1;
-    else if (radius > 2) radius = 2;
+    if (radius < 0) radius = 0;
     QList<Hex*> neighbors;
     bool worldEarthStyle = game->getWorldEarthStyle();
     int worldHeight = game->getWorldHeight();
     int worldWidth = game->getWorldWidth();
-    for (int modCol = -1; modCol <= 1; modCol++) {
-        for (int modRow = -1; modRow <= 1; modRow++)  {
-            if ((withOriginHex || modCol != 0 || modRow != 0)
-                && (worldEarthStyle || (!worldEarthStyle && -1 < col+modCol && col+modCol < worldWidth))
-                && -1 < row+modRow && row+modRow < worldHeight
-                && !(radius == 1 && col%2 == 1 && modRow == -1 && std::abs(modCol) == 1)
-                && !(radius == 1 && col%2 == 0 && modRow == 1 && std::abs(modCol) == 1)
-                && !(radius == 2 && col%2 == 1 && ((modRow == -2 && modCol != 0) || (modRow == 2 && std::abs(modCol) == 2)) )
-                && !(radius == 2 && col%2 == 0 && ((modRow == 2 && modCol != 0) || (modRow == -2 && std::abs(modCol) == 2)) ) ) {
-                    neighbors.append(game->getWorldMap()->at((worldWidth+col+modCol) % worldWidth).at(row+modRow));
+    for (int modCol = -radius; modCol <= radius; modCol++) {
+            for (int modRow = -radius+abs(modCol)/2+(col%2)*(abs(modCol)%2); modRow <= radius-ceil(abs((double)modCol)/2)+(col%2)*(abs(modCol)%2); modRow++)  {
+                if ((withOriginHex || modCol != 0 || modRow != 0)
+                    && (worldEarthStyle || (!worldEarthStyle && -1 < col+modCol && col+modCol < worldWidth))
+                    && -1 < row+modRow && row+modRow < worldHeight) {
+                        neighbors.append(game->getWorldMap()->at((worldWidth+col+modCol) % worldWidth).at(row+modRow));
+                }
             }
         }
-    }
     return neighbors;
 }
 

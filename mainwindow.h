@@ -60,6 +60,7 @@ public:
     void repositionGUI(int offspringX, int offspringY);
     void setupGUI();
     void setupWorldMap();
+    void simulateTectonicMovement(int range = 2);
     void translateValuesToWorldMap();
 
 private:

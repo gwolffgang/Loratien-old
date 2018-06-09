@@ -27,6 +27,7 @@ public:
     inline bool getRiver() const {return river;}
     inline int getRiverSize() const {return riverSize;}
     inline int getRow() const {return row;}
+    inline int getTectonicDirection() const {return tectonicDirection;}
     inline int getTectonicPlate() const {return tectonicPlate;}
     inline Hex *getTempLink() {return tempLink;}
     inline double getTempNumber() const {return tempNumber;}
@@ -48,6 +49,7 @@ public:
     inline void setRiver(const bool newBool) {river = newBool;}
     inline void setRiverSize(const int newSize) {riverSize = newSize;}
     inline void setRow(const int newRow) {row = newRow;}
+    inline void setTectonicDirection(const int newDirection) {tectonicDirection = newDirection;}
     inline void setTectonicPlate(const int newPlate) {tectonicPlate = newPlate;}
     inline void setTempLink(Hex *temporaryLink) {tempLink = temporaryLink;}
     inline void setTempNumber(const double temporaryNumber) {tempNumber = temporaryNumber;}
@@ -71,7 +73,7 @@ protected:
 private:
     // variables
     QPixmap pic;
-    int col, row, tectonicPlate, fertility, riverSize;
+    int col, row, tectonicPlate, tectonicDirection, fertility, riverSize;
     double altitude;
     QString type, climate;
     bool lake, river;
