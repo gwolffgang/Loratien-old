@@ -33,7 +33,6 @@ public:
     ~MainWindow();
 
     // getter
-    QList<Hex*> getHexNeighbors(int hexCol, int hexRow, int radius = 1, bool withOriginHex = false);
     inline int getHexSize() {return hexSize;}
     inline bool getLeftClick() {return leftClick;}
     inline int getMaxRiverSize() {return maxRiverSize;}

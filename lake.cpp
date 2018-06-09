@@ -31,7 +31,7 @@ bool Lake::addExistingLakeOf(Hex *hex) {
 
 Hex *Lake::checkRiver(Hex *lowestHex) {
     Hex *rivercheck = NULL;
-    foreach (Hex* neighbor, game->getWindow()->getHexNeighbors(lowestHex->getCol(), lowestHex->getRow()))
+    foreach (Hex* neighbor, lowestHex->getNeighborHexes())
         if (!neighbor->getLake() && (!rivercheck || neighbor->getAltitude() < rivercheck->getAltitude())) rivercheck = neighbor;
     return rivercheck;
 }
@@ -47,9 +47,7 @@ void Lake::expandLake() {
         lowestHex = NULL;
         for (int part = 0; part < lakeSize; part++) {
             currentHex = dimension->at(part);
-            int hexCol = currentHex->getCol();
-            int hexRow = currentHex->getRow();
-            foreach (Hex *neighbor, game->getWindow()->getHexNeighbors(hexCol, hexRow))
+            foreach (Hex *neighbor, currentHex->getNeighborHexes())
                 if (neighbor->getLake()) {
                     if (!isAlreadyInThisLake(neighbor) && addExistingLakeOf(neighbor)) {
                         lakeSize = dimension->size();

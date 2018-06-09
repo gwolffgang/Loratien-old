@@ -6,7 +6,7 @@ extern Loratien *game;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), springs(new QList<Hex*>), lakes(new QList<Hex*>),
     ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
-    windowTitle("Loratien"), hexSize(20), maxRiverSize(hexSize/4), percentMountain(0.12), percentOcean(0.65),
+    windowTitle("Loratien"), hexSize(10), maxRiverSize(hexSize/4), percentMountain(0.12), percentOcean(0.65),
     guiMenu(NULL), guiHexInfo(NULL) {
 
     setMouseTracking(true);
@@ -33,30 +33,6 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-QList<Hex*> MainWindow::getHexNeighbors(int hexCol, int hexRow, int radius, bool withOriginHex) {
-    if (radius > 2) radius = 2;
-    QList<QList<Hex*>> *worldMap = game->getWorldMap();
-    QList<Hex*> neighbors;
-    bool worldEarthStyle = game->getWorldEarthStyle();
-    int worldHeight = game->getWorldHeight();
-    int worldWidth = game->getWorldWidth();
-
-    for (int modCol = -radius; modCol <= radius; modCol++) {
-        for (int modRow = -radius; modRow <= radius; modRow++)  {
-            if ((withOriginHex || modCol != 0 || modRow != 0)
-                && (worldEarthStyle || (!worldEarthStyle && hexCol+modCol > -1 && hexCol+modCol < worldWidth))
-                && hexRow+modRow > -1 && hexRow+modRow < worldHeight
-                && !(radius == 1 && hexCol%2 == 1 && modRow == -1 && std::abs(modCol) == 1)
-                && !(radius == 1 && hexCol%2 == 0 && modRow == 1 && std::abs(modCol) == 1)
-                && !(radius == 2 && hexCol%2 == 1 && ((modRow == -2 && modCol != 0) || (modRow == 2 && std::abs(modCol) == 2)) )
-                && !(radius == 2 && hexCol%2 == 0 && ((modRow == 2 && modCol != 0) || (modRow == -2 && std::abs(modCol) == 2)) ) ){
-                    neighbors.append(worldMap->at((worldWidth+hexCol+modCol) % worldWidth).at(hexRow+modRow));
-            }
-        }
-    }
-    return neighbors;
-}
-
 double MainWindow::getPercentAlt(double percent) {
     if (percent > 1.0) percent = 1.0;
     else if (percent < 0.0) percent = 0.0;
@@ -75,11 +51,12 @@ void MainWindow::colorizePlates() {
     QList<QList<Hex*>> *worldMap = game->getWorldMap();
     for (int col = 0; col < game->getWorldWidth(); col++) {
         for (int row = 0; row < game->getWorldHeight(); row++) {
-            QBrush brush = QBrush(QColor(0, 0, 0), Qt::Dense3Pattern);
+            QBrush brush = QBrush(QColor(0, 0, 0), Qt::SolidPattern);
             double alt = worldMap->at(col).at(row)->getTectonicPlate();
             int paint = (100 + 150 * (alt / game->getWorldTectonicPlates()));
             brush.setColor(QColor(paint, paint, paint));
-            worldMap->at(col).at(row)->setBrush(brush);
+            if (alt == -1) brush.setColor(Qt::red);
+            worldMap->at(col).at(row)->draw(brush);
         }
     }
 }
@@ -93,7 +70,7 @@ void MainWindow::colorizeWorldMap() {
     QList<QList<Hex*>> *worldMap = game->getWorldMap();
     for (int col = 0; col < worldMap->size(); col++) {
         for (int row = 0; row < worldMap->at(col).size(); row++) {
-            QBrush brush = QBrush(QColor(0, 0, 0), Qt::Dense3Pattern);
+            QBrush brush = QBrush(QColor(0, 0, 0), Qt::SolidPattern);
             if (!worldMap->at(col).at(row)->getLake()) {
                 int paint = 0;
                 double alt = worldMap->at(col).at(row)->getAltitude();
@@ -110,7 +87,7 @@ void MainWindow::colorizeWorldMap() {
                     brush.setColor(QColor(0, 0, paint));
                 }
             } else brush.setColor(Qt::blue);
-            worldMap->at(col).at(row)->setBrush(brush);
+            worldMap->at(col).at(row)->draw(brush);
         }
     }
 }
@@ -166,7 +143,7 @@ void MainWindow::generateWorldMap() {
         currentHex = worldMap->at(hexCol).at(hexRow);
         if (-1 == currentHex->getTectonicPlate()) {
             currentHex->setTectonicPlate(k);
-            currentHex->setAltitude(rand()%90 + 6);
+            currentHex->setAltitude(rand()%50 + 6);
             hexesList.append(currentHex);
         } else k--;
     }
@@ -176,9 +153,8 @@ void MainWindow::generateWorldMap() {
         double alt = nextHex->getAltitude();
         double altSum = 0;
         int altCount = 0;
-        int hexCol = nextHex->getCol();
         int hexRow = nextHex->getRow();
-        QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(hexCol, hexRow);
+        QList<Hex*> neighbors = nextHex->getNeighborHexes(2);
         for (int k = 0; k < neighbors.size(); k++) {
             currentHex = neighbors.at(k);
             double currentAlt = currentHex->getAltitude();
@@ -231,7 +207,6 @@ void MainWindow::placeRivers() {
 
 void MainWindow::polishWorldMap() {
     QList<QList<Hex*>> *worldMap = game->getWorldMap();
-    QList<QList<Hex*>> unpolished = *worldMap;
     bool worldEarthStyle = game->getWorldEarthStyle();
     int maxAltitude = game->getWorldAltMax();
     int minAltitude = game->getWorldAltMin();
@@ -248,13 +223,13 @@ void MainWindow::polishWorldMap() {
                 for (int row = -1; row <= 1; row++) {
                     if ((worldEarthStyle || (!worldEarthStyle && worldCol+col > -1 && worldCol+col < worldWidth)) && worldRow+row > -1 && worldRow+row < worldHeight) {
                         if (row != 0 || col != 0) {
-                            alt += unpolished.at((worldWidth + worldCol + col) % worldWidth).at(worldRow+row)->getAltitude();
+                            alt += worldMap->at((worldWidth + worldCol + col) % worldWidth).at(worldRow+row)->getAltitude();
                             count++;
                         }
                     }
                 }
             }
-            alt += count * unpolished.at(worldCol).at(worldRow)->getAltitude();
+            alt += count * worldMap->at(worldCol).at(worldRow)->getAltitude();
             count = count * 2;
             worldMap->at(worldCol).at(worldRow)->setAltitude(alt/count);
         }
@@ -296,11 +271,12 @@ void MainWindow::setupWorldMap() {
         QApplication::setOverrideCursor(Qt::WaitCursor);
     #endif
     generateWorldMap();
+    //for (int times = 0; times < 3; times++) moveTectonicPlates();
     translateValuesToWorldMap();
-    for (int i = 0; i < 3; i++) polishWorldMap();
+    for (int times = 0; times < 3; times++) polishWorldMap();
     placeRivers();
     //placeCities();
-    //colorizePlates();
+    colorizePlates();
     colorizeWorldMap();
     #ifndef QT_NO_CURSOR
         QApplication::restoreOverrideCursor();

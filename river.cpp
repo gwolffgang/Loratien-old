@@ -19,7 +19,7 @@ River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), d
     hex->setRiver(true);
     if (direction != 0) {
         hex->setRiverSize(game->getWindow()->getMaxRiverSize());
-        penRiver = QPen(Qt::blue, hex->getRiverSize(), Qt::SolidLine);
+        penRiver.setWidth(hex->getRiverSize());
         switch (direction) {
         case 1:
             if (!hex->getLineDir4()) hex->setLineDir4(new QGraphicsLineItem);
@@ -53,7 +53,7 @@ River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), d
         }
     } else {
         hex->setRiverSize(1);
-        penRiver = QPen(Qt::blue, hex->getRiverSize(), Qt::SolidLine);
+        penRiver.setWidth(hex->getRiverSize());
     }
     watercourse->append(hex);
     bool ended = false;
@@ -281,7 +281,7 @@ Hex *River::nextRiverpartHex(QList<Hex*> *watercourse) {
         return NULL;
     switch (direction) {
     case 0: { // undecided yet
-        foreach (Hex *neighbor, game->getWindow()->getHexNeighbors(hexCol, hexRow))
+        foreach (Hex *neighbor, previousHex->getNeighborHexes())
             if (!lowestHex) lowestHex = neighbor;
             else {
                 if (neighbor->getAltitude() < lowestHex->getAltitude()) {

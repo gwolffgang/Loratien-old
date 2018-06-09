@@ -2,57 +2,60 @@
 #define HEX_H
 
 #include <QMouseEvent>
-#include <QGraphicsPolygonItem>
+#include <QGraphicsPixmapItem>
 
-class Hex : public QGraphicsPolygonItem {
+class Hex : public QGraphicsPixmapItem {
 
 public:
     // constructors
     explicit Hex(QGraphicsItem *parent = NULL);
 
     // getter
-    inline double getAltitude() {return altitude;}
-    inline QString getClimate() {return climate;}
-    inline int getCol() {return col;}
-    inline int getFertility() {return fertility;}
-    inline bool getLake() {return lake;}
+    inline double getAltitude() const {return altitude;}
+    inline QString getClimate() const {return climate;}
+    inline int getCol() const {return col;}
+    inline int getFertility() const {return fertility;}
+    inline bool getLake() const {return lake;}
     inline QGraphicsLineItem *getLineDir1() {return lineDir1;}
     inline QGraphicsLineItem *getLineDir2() {return lineDir2;}
     inline QGraphicsLineItem *getLineDir3() {return lineDir3;}
     inline QGraphicsLineItem *getLineDir4() {return lineDir4;}
     inline QGraphicsLineItem *getLineDir5() {return lineDir5;}
     inline QGraphicsLineItem *getLineDir6() {return lineDir6;}
-    inline bool getRiver() {return river;}
-    inline int getRiverSize() {return riverSize;}
-    inline int getRow() {return row;}
-    inline int getTectonicPlate() {return tectonicPlate;}
+    QList<Hex*> getNeighborHexes(int radius = 1, bool withOriginHex = false);
+    inline QPixmap getPic() {return pic;}
+    inline bool getRiver() const {return river;}
+    inline int getRiverSize() const {return riverSize;}
+    inline int getRow() const {return row;}
+    inline int getTectonicPlate() const {return tectonicPlate;}
     inline Hex *getTempLink() {return tempLink;}
-    inline double getTempNumber() {return tempNumber;}
-    inline bool getTempUsed() {return tempUsed;}
-    inline QString getType() {return type;}
+    inline double getTempNumber() const {return tempNumber;}
+    inline bool getTempUsed() const {return tempUsed;}
+    inline QString getType() const {return type;}
 
     // setter
-    inline void setAltitude(double newAltitude) {altitude = newAltitude;}
-    inline void setClimate(QString newClimate) {climate = newClimate;}
-    inline void setCol(int newCol) {col = newCol;}
-    inline void setFertility(int newFertility) {fertility = newFertility;}
-    inline void setLake(bool newBool) {lake = newBool;}
+    inline void setAltitude(const double newAltitude) {altitude = newAltitude;}
+    inline void setClimate(const QString newClimate) {climate = newClimate;}
+    inline void setCol(const int newCol) {col = newCol;}
+    inline void setFertility(const int newFertility) {fertility = newFertility;}
+    inline void setLake(const bool newBool) {lake = newBool;}
     inline void setLineDir1(QGraphicsLineItem *newLine) {lineDir1 = newLine;}
     inline void setLineDir2(QGraphicsLineItem *newLine) {lineDir2 = newLine;}
     inline void setLineDir3(QGraphicsLineItem *newLine) {lineDir3 = newLine;}
     inline void setLineDir4(QGraphicsLineItem *newLine) {lineDir4 = newLine;}
     inline void setLineDir5(QGraphicsLineItem *newLine) {lineDir5 = newLine;}
     inline void setLineDir6(QGraphicsLineItem *newLine) {lineDir6 = newLine;}
-    inline void setRiver(bool newBool) {river = newBool;}
-    inline void setRiverSize(int newSize) {riverSize = newSize;}
-    inline void setRow(int newRow) {row = newRow;}
-    inline void setTectonicPlate(int newPlate) {tectonicPlate = newPlate;}
+    inline void setRiver(const bool newBool) {river = newBool;}
+    inline void setRiverSize(const int newSize) {riverSize = newSize;}
+    inline void setRow(const int newRow) {row = newRow;}
+    inline void setTectonicPlate(const int newPlate) {tectonicPlate = newPlate;}
     inline void setTempLink(Hex *temporaryLink) {tempLink = temporaryLink;}
-    inline void setTempNumber(double temporaryNumber) {tempNumber = temporaryNumber;}
-    inline void setTempUsed(bool temporaryUsage) {tempUsed = temporaryUsage;}
-    inline void setType(QString newType) {type = newType;}
+    inline void setTempNumber(const double temporaryNumber) {tempNumber = temporaryNumber;}
+    inline void setTempUsed(const bool temporaryUsage) {tempUsed = temporaryUsage;}
+    inline void setType(const QString newType) {type = newType;}
 
     // methods
+    void draw(QBrush brush);
     void evaluateFertility();
     void evaluateResources();
     void removeRivers();
@@ -67,6 +70,7 @@ protected:
 
 private:
     // variables
+    QPixmap pic;
     int col, row, tectonicPlate, fertility, riverSize;
     double altitude;
     QString type, climate;

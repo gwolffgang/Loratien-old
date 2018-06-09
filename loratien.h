@@ -16,10 +16,9 @@ class Loratien {
 private:
     // attributes
     MainWindow *window;
-    int hexSize, worldWidth, worldHeight;
+    int worldWidth, worldHeight;
     bool worldEarthStyle;
     int worldAltMax, worldAltMin, worldRivers, worldTectonicPlates;
-    QList<QList<Hex*>> *worldTectonicPlatesList;
     QList<QList<Hex*>> *worldMap;
     QList<River*> *rivers;
     QList<Lake*> *lakes;
@@ -33,7 +32,6 @@ public:
     explicit Loratien();
 
     // getter
-    inline int getHexSize() {return hexSize;}
     inline QList<Lake*> *getLakes() {return lakes;}
     inline QList<River*> *getRivers() {return rivers;}
     QList<River*> getRivers(int hexCol, int hexRow);
@@ -45,7 +43,6 @@ public:
     inline QList<QList<Hex*>> *getWorldMap() {return worldMap;}
     inline int getWorldRivers() {return worldRivers;}
     inline int getWorldTectonicPlates() {return worldTectonicPlates;}
-    inline QList<QList<Hex*>> *getWorldTectonicPlatesList() {return worldTectonicPlatesList;}
     inline int getWorldWidth() {return worldWidth;}
 
     // methods

@@ -5,29 +5,56 @@
 
 extern Loratien *game;
 
-Hex::Hex(QGraphicsItem *parent) : QGraphicsPolygonItem(parent),
+Hex::Hex(QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
     col(-1), row(-1), tectonicPlate(-1), fertility(0), riverSize(0), altitude(-99), type(' '), climate(' '),
     lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {
+    setAcceptHoverEvents(true); // allow special mouse events
+}
 
-    // presettings
+QList<Hex*> Hex::getNeighborHexes(int radius, bool withOriginHex) {
+    if (radius < 1) radius = 1;
+    else if (radius > 2) radius = 2;
+    QList<Hex*> neighbors;
+    bool worldEarthStyle = game->getWorldEarthStyle();
+    int worldHeight = game->getWorldHeight();
+    int worldWidth = game->getWorldWidth();
+    for (int modCol = -1; modCol <= 1; modCol++) {
+        for (int modRow = -1; modRow <= 1; modRow++)  {
+            if ((withOriginHex || modCol != 0 || modRow != 0)
+                && (worldEarthStyle || (!worldEarthStyle && -1 < col+modCol && col+modCol < worldWidth))
+                && -1 < row+modRow && row+modRow < worldHeight
+                && !(radius == 1 && col%2 == 1 && modRow == -1 && std::abs(modCol) == 1)
+                && !(radius == 1 && col%2 == 0 && modRow == 1 && std::abs(modCol) == 1)
+                && !(radius == 2 && col%2 == 1 && ((modRow == -2 && modCol != 0) || (modRow == 2 && std::abs(modCol) == 2)) )
+                && !(radius == 2 && col%2 == 0 && ((modRow == 2 && modCol != 0) || (modRow == -2 && std::abs(modCol) == 2)) ) ) {
+                    neighbors.append(game->getWorldMap()->at((worldWidth+col+modCol) % worldWidth).at(row+modRow));
+            }
+        }
+    }
+    return neighbors;
+}
+
+void Hex::draw(QBrush brush) {
     int size = game->getWindow()->getHexSize();
-
-    // create a hex to put to the scene
-    QVector<QPointF> hexPoints;
-    hexPoints << QPointF(0.5, 0) << QPointF(1.5, 0) << QPointF(2, sqrt(3)/2) << QPointF(1.5, sqrt(3)) << QPointF(0.5, sqrt(3)) << QPointF(0, sqrt(3)/2);
-    // scale the points
-    for (int i = 0; i < hexPoints.size(); ++i) hexPoints[i] *= size;
-    QPolygonF hexagon(hexPoints);
-    setPolygon(hexagon);
-
-    // allow special mouse events
-    setAcceptHoverEvents(true);
+    double width = 2 * size, height = sqrt(3) * size;
+    pic = QPixmap(width, height);
+    pic.fill(Qt::transparent);
+    QPainter painter(&pic);
+        QVector<QPointF> hexPoints;
+        hexPoints << QPointF(0.5, 0) << QPointF(1.5, 0) << QPointF(2, sqrt(3)/2) << QPointF(1.5, sqrt(3)) << QPointF(0.5, sqrt(3)) << QPointF(0, sqrt(3)/2);
+        for (int i = 0; i < hexPoints.size(); ++i) hexPoints[i] *= size; // scale the points
+        QPolygonF hexagon(hexPoints);
+        painter.setPen(Qt::black);
+        painter.setBrush(brush);
+        painter.drawPolygon(hexagon);
+    painter.end();
+    setPixmap(pic);
 }
 
 void Hex::evaluateFertility() {
-    QList<Hex*> neighbors = game->getWindow()->getHexNeighbors(col, row, 1, true);
+    QList<Hex*> neighbors = getNeighborHexes(1, true);
     for (int k = 0; k < neighbors.size(); k++) fertility += neighbors.at(k)->getRiverSize();
 }
 
