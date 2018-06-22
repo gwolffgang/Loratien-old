@@ -1,11 +1,9 @@
 #ifndef GROUP_H
 #define GROUP_H
 
-#include <QGraphicsRectItem>
-
 #include "hex.h"
 
-class Group : public QGraphicsRectItem {
+class Group : public QGraphicsPixmapItem {
 
 private:
     QString name;

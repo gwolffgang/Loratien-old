@@ -1,10 +1,14 @@
 #ifndef LORATIEN_H
 #define LORATIEN_H
 
+#include <QtSql>
+#include <QtDebug>
 #include <math.h>
 #include <time.h>
 
 #include "mainwindow.h"
+#include "database.h"
+#include "char.h"
 #include "group.h"
 #include "gui.h"
 #include "hex.h"
@@ -16,6 +20,7 @@ class Loratien {
 private:
     // attributes
     MainWindow *window;
+    Database *database;
     int worldWidth, worldHeight;
     bool worldEarthStyle;
     int worldAltMax, worldAltMin, worldRivers, worldTectonicPlates;
@@ -25,6 +30,7 @@ private:
     //QList<Bridge*> *bridges;
     //QList<City*>*cities;
     //QList<Village*> *villages;
+    QList<Char*> *npcs;
     Group *group;
 
 public:
@@ -32,6 +38,7 @@ public:
     explicit Loratien();
 
     // getter
+    inline Database *getDatabase() {return database;}
     inline QList<Lake*> *getLakes() {return lakes;}
     inline QList<River*> *getRivers() {return rivers;}
     QList<River*> getRivers(int hexCol, int hexRow);

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/lists/names_male.list</file>
+        <file>data/lists/names_female.list</file>
+    </qresource>
+</RCC>

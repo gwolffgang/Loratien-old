@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -30,7 +31,9 @@ SOURCES += main.cpp\
     river.cpp \
     group.cpp \
     lake.cpp \
-    gui.cpp
+    gui.cpp \
+    char.cpp \
+    database.cpp
 
 HEADERS  += mainwindow.h \
     loratien.h \
@@ -38,8 +41,11 @@ HEADERS  += mainwindow.h \
     river.h \
     group.h \
     lake.h \
-    gui.h
+    gui.h \
+    char.h \
+    database.h
 
 FORMS    += mainwindow.ui
 
-RESOURCES +=
+RESOURCES += \
+    data.qrc
