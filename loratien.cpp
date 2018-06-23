@@ -3,11 +3,11 @@
 
 extern Loratien *game;
 
-Loratien::Loratien() : window(new MainWindow), database(new Database), worldWidth(20), worldHeight(20), worldEarthStyle(true),
+Loratien::Loratien() : window(new MainWindow), database(new Database), worldWidth(200), worldHeight(200), worldEarthStyle(true),
     worldAltMax(10), worldAltMin(-10), worldRivers(worldWidth*worldHeight * 0.0005),
     worldTectonicPlates(10), worldMap(new QList<QList<Hex*>>),
     rivers(new QList<River*>), lakes(new QList<Lake*>), npcs(new QList<Char*>), group(new Group) /*,
-    bridges(new QList<Bridge*>), cities(new QList<City*>), villages(new QList<Village*>)*/ {
+    cities(new QList<City*>), villages(new QList<Village*>)*/ {
 
     if (worldEarthStyle && 1 == worldWidth%2) worldWidth++;
 
@@ -20,13 +20,13 @@ Loratien::Loratien() : window(new MainWindow), database(new Database), worldWidt
     window->show();
 }
 
-QList<River*> Loratien::getRivers(int hexCol, int hexRow) {
+QList<River*> Loratien::getRivers(Hex *hex) {
     QList<River*> list;
     for (int i = 0; i < game->getRivers()->size(); i++) {
         River *current = game->getRivers()->at(i);
         for (int k = 0; k < current->getWatercourse()->size(); k++) {
             Hex *part = current->getWatercourse()->at(k);
-            if (part->getCol() == hexCol && part->getRow() == hexRow) list.append(current);
+            if (part->getCol() == hex->getCol() && part->getRow() == hex->getRow()) list.append(current);
         }
     }
     return list;
@@ -35,5 +35,5 @@ QList<River*> Loratien::getRivers(int hexCol, int hexRow) {
 void Loratien::setupGame() {
     window->constructWorldMap();
     window->setupWorldMap();
-    //window->setupHUD();
+    window->setupGUI();
 }

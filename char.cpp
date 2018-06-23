@@ -205,7 +205,7 @@ void Char::create_random() {
         chooseSkills(groups[i]*8, 0.5*(double)i*(double)i+1.5*(double)i+2);
     if (9 == age) for (int i = 0; i < 3; i++)
         chooseSkills(groups[i]*8, i*i+3);
-    if (10 == age || 11 = age) for (int i = 0; i < 3; i++)
+    if (10 == age || 11 == age) for (int i = 0; i < 3; i++)
         chooseSkills(groups[i]*8, 0.5*(double)i*(double)i+1.5*(double)i+3);
     if (12 == age) for (int i = 0; i < 3; i++)
         chooseSkills(groups[i]*8, i*i+i+3);

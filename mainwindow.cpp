@@ -6,7 +6,7 @@ extern Loratien *game;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), springs(new QList<Hex*>), lakes(new QList<Hex*>),
     ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
-    windowTitle("Loratien"), hexSize(5), maxRiverSize(hexSize/4), percentMountain(0.10), percentOcean(0.65),
+    windowTitle("Loratien"), hexSize(10), maxRiverSize(hexSize/4), percentMountain(0.10), percentOcean(0.65),
     guiMenu(NULL), guiHexInfo(NULL) {
     setMouseTracking(true);
 
@@ -78,11 +78,11 @@ void MainWindow::colorizeWorldMap() {
                 } else if (alt >= mountainLevel) {
                     paint = 100 + 150 * ((alt - mountainLevel) / (maxAlt-mountainLevel));
                     brush.setColor(QColor(paint, paint, paint));
-                } else if (alt >= 0) {
-                    paint = 255 - 200 * (alt / (mountainLevel-waterLevel));
+                } else if (alt >= waterLevel) {
+                    paint = 255 - 200 * ((alt-waterLevel) / (mountainLevel-waterLevel));
                     brush.setColor(QColor(0, paint, 0));
                 } else {
-                    paint = 255 - 255 * (alt / minAlt);
+                    paint = 5 + 250 * ((alt-minAlt) / (waterLevel-minAlt));
                     brush.setColor(QColor(0, 0, paint));
                 }
             } else brush.setColor(Qt::blue);
@@ -266,17 +266,16 @@ void MainWindow::setupWorldMap() {
         QApplication::setOverrideCursor(Qt::WaitCursor);
     #endif
     generateWorldMap();
-    //simulateTectonicMovement(3);
-    //translateValuesToWorldMap();
-    //for (int times = 0; times < 2; times++) polishWorldMap();
-    //placeRivers();
+    simulateTectonicMovement(3);
+    translateValuesToWorldMap();
+    for (int times = 0; times < 2; times++) polishWorldMap();
+    placeRivers();
     //placeCities();
     //colorizePlates();
-    //colorizeWorldMap();
-    QList<Char*> *chars = new QList<Char*>;
+    colorizeWorldMap();
     for (int i = 0; i < 10; i++) {
         Char *newChar = new Char;
-        chars->append(newChar);
+        game->getNpcs()->append(newChar);
     }
     #ifndef QT_NO_CURSOR
         QApplication::restoreOverrideCursor();

@@ -20,9 +20,8 @@ public:
     inline QList<Hex*> *getWatercourse() {return watercourse;}
 
     // methods
-    QList<Hex*> calculateWatercourse(Hex *spring);
     void drawRiver();
-    Hex *nextRiverpartHex(QList<Hex*> *watercourse);
+    Hex *nextRiverpartHex();
 };
 
 #endif // RIVER_H

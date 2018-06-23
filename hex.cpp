@@ -31,6 +31,13 @@ QList<Hex*> Hex::getNeighborHexes(int radius, bool withOriginHex) {
     return neighbors;
 }
 
+void Hex::copyValuesFrom(Hex *hex) {
+    altitude = hex->getAltitude();
+    col = hex->getCol();
+    row = hex->getRow();
+    pic = hex->getPic();
+}
+
 void Hex::draw(QBrush brush) {
     int size = game->getWindow()->getHexSize();
     double width = 2 * size, height = sqrt(3) * size;
@@ -58,18 +65,19 @@ void Hex::evaluateResources() {
 }
 
 void Hex::removeRivers() {
-    river = false;
-    riverSize = 0;
-    if (lineDir1) { delete lineDir1; lineDir1 = NULL; }
-    if (lineDir2) { delete lineDir2; lineDir2 = NULL; }
-    if (lineDir3) { delete lineDir3; lineDir3 = NULL; }
-    if (lineDir4) { delete lineDir4; lineDir4 = NULL; }
-    if (lineDir5) { delete lineDir5; lineDir5 = NULL; }
-    if (lineDir6) { delete lineDir6; lineDir6 = NULL; }
-    foreach (River *river, game->getRivers(col, row)) {
-        for (int riverPart = 0; riverPart < river->getWatercourse()->size(); riverPart++) {
-            Hex *part = river->getWatercourse()->at(riverPart);
-            if (part->getCol() == col && part->getRow() == row) river->getWatercourse()->removeAt(riverPart);
+    foreach (River *river, game->getRivers(this)) {
+        bool done = false;
+        while (!done && river->getWatercourse()->size() > 0) {
+            Hex *part = river->getWatercourse()->last();
+            if(part->getCol() == col && part->getRow() == row) done = true;
+            part->setRiver(false);
+            if (part->getLineDir1()) { delete part->getLineDir1(); part->setLineDir1(NULL); }
+            if (part->getLineDir2()) { delete part->getLineDir2(); part->setLineDir2(NULL); }
+            if (part->getLineDir3()) { delete part->getLineDir3(); part->setLineDir3(NULL); }
+            if (part->getLineDir4()) { delete part->getLineDir4(); part->setLineDir4(NULL); }
+            if (part->getLineDir5()) { delete part->getLineDir5(); part->setLineDir5(NULL); }
+            if (part->getLineDir6()) { delete part->getLineDir6(); part->setLineDir6(NULL); }
+            river->getWatercourse()->removeLast();
         }
     }
 }

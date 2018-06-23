@@ -19,7 +19,8 @@ bool Lake::addExistingLakeOf(Hex *hex) {
         lakeDimension = lake->getDimension();
         for (int part = 0; part < lakeDimension->size(); part++) {
             if (lakeDimension->at(part) == hex) {
-                for (int m = 0; m < lakeDimension->size(); m++) dimension->append(lakeDimension->at(m));
+                for (int m = 0; m < lakeDimension->size(); m++)
+                    dimension->append(lakeDimension->at(m));
                 delete lake;
                 lakes->removeAt(k);
                 return true;
@@ -38,7 +39,7 @@ Hex *Lake::checkRiver(Hex *lowestHex) {
 
 void Lake::expandLake() {
     bool ended = false;
-    int lakeSize = 1;
+    int lakeSize = 0;
     Hex *currentHex = NULL;
     Hex *lowestHex = NULL;
     Hex *riverCheck = NULL;
@@ -47,23 +48,22 @@ void Lake::expandLake() {
         lowestHex = NULL;
         for (int part = 0; part < lakeSize; part++) {
             currentHex = dimension->at(part);
-            foreach (Hex *neighbor, currentHex->getNeighborHexes())
+            foreach (Hex *neighbor, currentHex->getNeighborHexes()) {
                 if (neighbor->getLake()) {
                     if (!isAlreadyInThisLake(neighbor) && addExistingLakeOf(neighbor)) {
                         lakeSize = dimension->size();
                         part = -1;
                     }
-                } else if (!lowestHex || neighbor->getAltitude() < lowestHex->getAltitude()) lowestHex = neighbor;
+                } else if (!lowestHex || neighbor->getAltitude() < lowestHex->getAltitude())
+                    lowestHex = neighbor;
+            }
         }
         riverCheck = checkRiver(lowestHex);
         if (riverCheck) {
             dimension->append(lowestHex);
             lowestHex->setLake(true);
             lowestHex->removeRivers();
-            if (lowestHex->getAltitude() > riverCheck->getAltitude()) {
-                dimension->append(lowestHex);
-                lowestHex->setLake(true);
-                lowestHex->removeRivers();
+            if (riverCheck->getAltitude() < lowestHex->getAltitude()) {
                 River *newRiver = NULL;
                 int lastCol = lowestHex->getCol(), lastRow = lowestHex->getRow();
                 int nextCol = riverCheck->getCol(), nextRow = riverCheck->getRow();

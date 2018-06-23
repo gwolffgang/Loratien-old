@@ -27,7 +27,6 @@ private:
     QList<QList<Hex*>> *worldMap;
     QList<River*> *rivers;
     QList<Lake*> *lakes;
-    //QList<Bridge*> *bridges;
     //QList<City*>*cities;
     //QList<Village*> *villages;
     QList<Char*> *npcs;
@@ -40,8 +39,9 @@ public:
     // getter
     inline Database *getDatabase() {return database;}
     inline QList<Lake*> *getLakes() {return lakes;}
+    inline QList<Char*> *getNpcs() {return npcs;}
     inline QList<River*> *getRivers() {return rivers;}
-    QList<River*> getRivers(int hexCol, int hexRow);
+    QList<River*> getRivers(Hex *hex);
     inline MainWindow *getWindow() {return window;}
     inline int getWorldAltMax() {return worldAltMax;}
     inline int getWorldAltMin() {return worldAltMin;}

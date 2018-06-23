@@ -57,6 +57,7 @@ public:
     inline void setType(const QString newType) {type = newType;}
 
     // methods
+    void copyValuesFrom(Hex *hex);
     void draw(QBrush brush);
     void evaluateFertility();
     void evaluateResources();
