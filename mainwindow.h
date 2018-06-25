@@ -33,6 +33,8 @@ public:
     ~MainWindow();
 
     // getter
+    inline Gui *getGuiHexInfo() {return guiHexInfo;}
+    inline Gui *getGuiMenu() {return guiMenu;}
     inline int getHexSize() {return hexSize;}
     inline bool getLeftClick() {return leftClick;}
     inline int getMaxRiverSize() {return maxRiverSize;}
@@ -57,8 +59,9 @@ public:
     void placeCities();
     void placeRivers();
     void polishWorldMap();
-    void repositionGUI(int offspringX, int offspringY);
-    void setupGUI();
+    void refresh();
+    void repositionGui(double offspringX, double offspringY);
+    void setupGui();
     void setupWorldMap();
     void simulateTectonicMovement(int range = 2);
     void translateValuesToWorldMap();
@@ -71,7 +74,7 @@ private:
     QString windowTitle;
     int hexSize, maxRiverSize;
     double percentMountain, percentOcean;
-    GUI *guiMenu, *guiHexInfo;
+    Gui *guiMenu, *guiHexInfo;
     QPointF mousePos;
     bool rightClick, leftClick;
 };

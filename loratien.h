@@ -3,6 +3,8 @@
 
 #include <QtSql>
 #include <QtDebug>
+#include <QPainter>
+#include <QMouseEvent>
 #include <math.h>
 #include <time.h>
 

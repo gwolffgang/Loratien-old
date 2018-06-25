@@ -3,10 +3,9 @@
 
 #include <QFile>
 #include <QSqlDatabase>
-#include <QSqlTableModel>
 #include <QSqlError>
-#include <QDebug>
 #include <QSqlQuery>
+#include <QDebug>
 
 class Database {
 

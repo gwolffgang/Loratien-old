@@ -1,11 +1,11 @@
 #include "hex.h"
 #include "loratien.h"
 #include <QLineF>
-#include <QPainter>
 
 extern Loratien *game;
 
 Hex::Hex(QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
+    brush(QBrush(QColor(0, 0, 0), Qt::SolidPattern)), border(QPen(Qt::black)),
     col(-1), row(-1), tectonicPlate(-1), tectonicDirection(-1), fertility(0), riverSize(0), altitude(-99),
     type(' '), climate(' '), lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
@@ -31,15 +31,8 @@ QList<Hex*> Hex::getNeighborHexes(int radius, bool withOriginHex) {
     return neighbors;
 }
 
-void Hex::copyValuesFrom(Hex *hex) {
-    altitude = hex->getAltitude();
-    col = hex->getCol();
-    row = hex->getRow();
-    pic = hex->getPic();
-}
-
-void Hex::draw(QBrush brush) {
-    int size = game->getWindow()->getHexSize();
+void Hex::draw(int size) {
+    if (-1 == size) size = game->getWindow()->getHexSize();
     double width = 2 * size, height = sqrt(3) * size;
     pic = QPixmap(width, height);
     pic.fill(Qt::transparent);
@@ -48,7 +41,7 @@ void Hex::draw(QBrush brush) {
         hexPoints << QPointF(0.5, 0) << QPointF(1.5, 0) << QPointF(2, sqrt(3)/2) << QPointF(1.5, sqrt(3)) << QPointF(0.5, sqrt(3)) << QPointF(0, sqrt(3)/2);
         for (int i = 0; i < hexPoints.size(); ++i) hexPoints[i] *= size; // scale the points
         QPolygonF hexagon(hexPoints);
-        painter.setPen(Qt::black);
+        painter.setPen(border);
         painter.setBrush(brush);
         painter.drawPolygon(hexagon);
     painter.end();
@@ -90,19 +83,31 @@ void Hex::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
     event->ignore();
 }
 
+void Hex::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
+   if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
+}
+
 void Hex::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     game->getWindow()->setRightClick(false);
     game->getWindow()->setLeftClick(false);
-    if (event->button() == Qt::RightButton) game->getWindow()->setRightClick(true);
-    if (event->button() == Qt::LeftButton) game->getWindow()->setLeftClick(true);
+    if (event->button() == Qt::RightButton) {
+        game->getWindow()->setRightClick(true);
+    }
+    if (event->button() == Qt::LeftButton) {
+        game->getWindow()->setLeftClick(true);
+        int oldCol = game->getWindow()->getGuiHexInfo()->getSelectedHexGui()->getCol();
+        int oldRow = game->getWindow()->getGuiHexInfo()->getSelectedHexGui()->getRow();
+        game->getWorldMap()->at(oldCol).at(oldRow)->setBorder(QPen(Qt::black));
+        game->getWorldMap()->at(oldCol).at(oldRow)->draw();
+        game->getWindow()->getGuiHexInfo()->setSelectedHex(this);
+        this->setBorder(QPen(Qt::red, 2, Qt::SolidLine));
+        this->draw();
+        game->getWindow()->refresh();
+    }
     game->getWindow()->setMousePos(event->pos());
 }
 
 void Hex::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     if (event->button() == Qt::RightButton) game->getWindow()->setRightClick(false);
     if (event->button() == Qt::LeftButton) game->getWindow()->setLeftClick(false);
-}
-
-void Hex::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-   if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
 }

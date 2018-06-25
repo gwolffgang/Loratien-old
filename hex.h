@@ -1,8 +1,9 @@
 #ifndef HEX_H
 #define HEX_H
 
-#include <QMouseEvent>
 #include <QGraphicsPixmapItem>
+#include <QBrush>
+#include <QPen>
 
 class Hex : public QGraphicsPixmapItem {
 
@@ -12,6 +13,8 @@ public:
 
     // getter
     inline double getAltitude() const {return altitude;}
+    inline QPen getBorder() const {return border;}
+    inline QBrush getBrush() const {return brush;}
     inline QString getClimate() const {return climate;}
     inline int getCol() const {return col;}
     inline int getFertility() const {return fertility;}
@@ -36,6 +39,8 @@ public:
 
     // setter
     inline void setAltitude(const double newAltitude) {altitude = newAltitude;}
+    inline void setBorder(const QPen newBorder) {border = newBorder;}
+    inline void setBrush(const QBrush newBrush) {brush = newBrush;}
     inline void setClimate(const QString newClimate) {climate = newClimate;}
     inline void setCol(const int newCol) {col = newCol;}
     inline void setFertility(const int newFertility) {fertility = newFertility;}
@@ -46,6 +51,7 @@ public:
     inline void setLineDir4(QGraphicsLineItem *newLine) {lineDir4 = newLine;}
     inline void setLineDir5(QGraphicsLineItem *newLine) {lineDir5 = newLine;}
     inline void setLineDir6(QGraphicsLineItem *newLine) {lineDir6 = newLine;}
+    inline void setPic(const QPixmap newPixmap) {pic = newPixmap;}
     inline void setRiver(const bool newBool) {river = newBool;}
     inline void setRiverSize(const int newSize) {riverSize = newSize;}
     inline void setRow(const int newRow) {row = newRow;}
@@ -57,8 +63,7 @@ public:
     inline void setType(const QString newType) {type = newType;}
 
     // methods
-    void copyValuesFrom(Hex *hex);
-    void draw(QBrush brush);
+    void draw(int size = -1);
     void evaluateFertility();
     void evaluateResources();
     void removeRivers();
@@ -74,6 +79,8 @@ protected:
 private:
     // variables
     QPixmap pic;
+    QBrush brush;
+    QPen border;
     int col, row, tectonicPlate, tectonicDirection, fertility, riverSize;
     double altitude;
     QString type, climate;

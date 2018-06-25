@@ -1,32 +1,30 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include <QMouseEvent>
-
 #include "hex.h"
 
-class GUI : public QGraphicsRectItem {
+class Gui : public QGraphicsPixmapItem {
 
 private:
     // attributes
-    float posX, posY, height, width;
-    Hex *selectedHex;
+    QPixmap pic;
+    double width, height;
+    Hex *selectedHexGui, *selectedHexWorldMap;
 
 public:
     // constructor
-    GUI(float x, float y, float w, float h, QGraphicsItem *parent = NULL);
+    Gui(double x, double y, double w, double h, QGraphicsItem *parent = NULL);
 
     // getter
-    inline float getHeight() {return height;}
-    inline float getPosX() {return posX;}
-    inline float getPosY() {return posY;}
-    inline float getWidth() {return width;}
+    inline double getHeight() {return height;}
+    inline Hex *getSelectedHexGui() {return selectedHexGui;}
+    inline Hex *getSelectedHexWorldMap() {return selectedHexWorldMap;}
+    inline double getWidth() {return width;}
 
     // setter
-    inline void setHeight(float newHeight) {height = newHeight;}
-    inline void setPosX(float newPosX) {posX = newPosX;}
-    inline void setPosY(float newPosY) {posY = newPosY;}
-    inline void setWidth(float newWidth) {width = newWidth;}
+    inline void setHeight(double newHeight) {height = newHeight;}
+    void setSelectedHex(Hex *hex);
+    inline void setWidth(double newWidth) {width = newWidth;}
 };
 
 #endif // GUI_H

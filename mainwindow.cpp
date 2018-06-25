@@ -55,7 +55,8 @@ void MainWindow::colorizePlates() {
             int paint = (100 + 150 * (alt / game->getWorldTectonicPlates()));
             brush.setColor(QColor(paint, paint, paint));
             if (alt == -1) brush.setColor(Qt::red);
-            worldMap->at(col).at(row)->draw(brush);
+            worldMap->at(col).at(row)->setBrush(brush);
+            worldMap->at(col).at(row)->draw();
         }
     }
 }
@@ -86,7 +87,8 @@ void MainWindow::colorizeWorldMap() {
                     brush.setColor(QColor(0, 0, paint));
                 }
             } else brush.setColor(Qt::blue);
-            worldMap->at(col).at(row)->draw(brush);
+            worldMap->at(col).at(row)->setBrush(brush);
+            worldMap->at(col).at(row)->draw();
         }
     }
 }
@@ -115,7 +117,7 @@ void MainWindow::dragWorldMap(QGraphicsSceneMouseEvent *event) {
         scene->setSceneRect(previousPoint.x() + change.x(), previousPoint.y() + change.y(), desktop.width()-2, desktop.height()-2);
         if (scene->sceneRect().x() < 0) scene->setSceneRect(0, scene->sceneRect().y(), desktop.width()-2, desktop.height()-2);
         if (scene->sceneRect().y() < 0) scene->setSceneRect(scene->sceneRect().x(), 0, desktop.width()-2, desktop.height()-2);
-        repositionGUI(scene->sceneRect().x(), scene->sceneRect().y());
+        repositionGui(scene->sceneRect().x(), scene->sceneRect().y());
     }
 }
 
@@ -246,18 +248,22 @@ void MainWindow::polishWorldMap() {
     }
 }
 
-void MainWindow::repositionGUI(int offspringX, int offspringY) {
-    if (guiMenu) guiMenu->setRect(offspringX + guiMenu->getPosX(), offspringY + guiMenu->getPosY(), guiMenu->getWidth(), guiMenu->getHeight());
-    if (guiHexInfo) guiHexInfo->setRect(offspringX + guiHexInfo->getPosX(), offspringY + guiHexInfo->getPosY(), guiHexInfo->getWidth(), guiHexInfo->getHeight());
+void MainWindow::refresh() {
+    if (guiHexInfo) {
+        guiHexInfo->getSelectedHexGui()->draw((guiHexInfo->getWidth()-20)/2);
+    }
 }
 
-void MainWindow::setupGUI() {
-    guiMenu = new GUI(desktop.width()-2-desktop.width()*0.1, 0, desktop.width()*0.1, desktop.width()*0.2);
-    guiMenu->setBrush(QBrush(Qt::darkGray, Qt::SolidPattern));
-    scene->addItem(guiMenu);
+void MainWindow::repositionGui(double offspringX, double offspringY) {
+    if (guiMenu) guiMenu->setPos(offspringX, offspringY);
+    if (guiHexInfo) guiHexInfo->setPos(offspringX, offspringY);
+}
 
-    guiHexInfo = new GUI(0, 0, desktop.width()*0.1, desktop.width()*0.2);
-    guiHexInfo->setBrush(QBrush(Qt::darkGray, Qt::SolidPattern));
+void MainWindow::setupGui() {
+    //guiMenu = new Gui(desktop.width()-2-desktop.width()*0.1, 0, desktop.width()*0.1, desktop.height()*0.2);
+    //scene->addItem(guiMenu);
+
+    guiHexInfo = new Gui(0, 0, desktop.width()*0.1, desktop.height()*0.2);
     scene->addItem(guiHexInfo);
 }
 
@@ -273,10 +279,10 @@ void MainWindow::setupWorldMap() {
     //placeCities();
     //colorizePlates();
     colorizeWorldMap();
-    for (int i = 0; i < 10; i++) {
-        Char *newChar = new Char;
-        game->getNpcs()->append(newChar);
-    }
+    //for (int i = 0; i < 10; i++) {
+     //   Char *newChar = new Char;
+    //    game->getNpcs()->append(newChar);
+    //}
     #ifndef QT_NO_CURSOR
         QApplication::restoreOverrideCursor();
 #endif

@@ -35,5 +35,5 @@ QList<River*> Loratien::getRivers(Hex *hex) {
 void Loratien::setupGame() {
     window->constructWorldMap();
     window->setupWorldMap();
-    window->setupGUI();
+    window->setupGui();
 }
