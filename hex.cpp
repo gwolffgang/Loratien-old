@@ -95,13 +95,12 @@ void Hex::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     }
     if (event->button() == Qt::LeftButton) {
         game->getWindow()->setLeftClick(true);
-        int oldCol = game->getWindow()->getGuiHexInfo()->getSelectedHexGui()->getCol();
-        int oldRow = game->getWindow()->getGuiHexInfo()->getSelectedHexGui()->getRow();
-        game->getWorldMap()->at(oldCol).at(oldRow)->setBorder(QPen(Qt::black));
-        game->getWorldMap()->at(oldCol).at(oldRow)->draw();
-        game->getWindow()->getGuiHexInfo()->setSelectedHex(this);
+        Hex *selectedHexWorldMap = game->getWindow()->getGuiHexInfo()->getSelectedHexWorldMap();
+        selectedHexWorldMap->setBorder(QPen(Qt::black));
+        selectedHexWorldMap->draw();
         this->setBorder(QPen(Qt::red, 2, Qt::SolidLine));
         this->draw();
+        game->getWindow()->getGuiHexInfo()->setSelectedHex(this);
         game->getWindow()->refresh();
     }
     game->getWindow()->setMousePos(event->pos());
