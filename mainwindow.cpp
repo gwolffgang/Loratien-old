@@ -6,7 +6,7 @@ extern Loratien *game;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), springs(new QList<Hex*>), lakes(new QList<Hex*>),
     ui(new Ui::MainWindow), scene(new QGraphicsScene(this)), screen(QGuiApplication::primaryScreen()),
-    windowTitle("Loratien"), hexSize(10), maxRiverSize(hexSize/4), percentMountain(0.10), percentOcean(0.65),
+    windowTitle("Loratien"), hexSize(30), maxRiverSize(hexSize/4), percentMountain(0.10), percentOcean(0.65),
     guiMenu(NULL), guiHexInfo(NULL) {
     setMouseTracking(true);
 
@@ -279,10 +279,11 @@ void MainWindow::setupWorldMap() {
     //placeCities();
     //colorizePlates();
     colorizeWorldMap();
-    //for (int i = 0; i < 10; i++) {
-     //   Char *newChar = new Char;
-    //    game->getNpcs()->append(newChar);
-    //}
+    game->setDatabase(new Database);
+    for (int i = 0; i < 10; i++) {
+        Char *newChar = new Char;
+        game->getDatabase()->saveCharacter(newChar);
+    }
     #ifndef QT_NO_CURSOR
         QApplication::restoreOverrideCursor();
 #endif

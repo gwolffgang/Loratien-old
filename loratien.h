@@ -54,6 +54,9 @@ public:
     inline int getWorldTectonicPlates() {return worldTectonicPlates;}
     inline int getWorldWidth() {return worldWidth;}
 
+    // setter
+    inline void setDatabase(Database *newDatabase) {database = newDatabase;}
+
     // methods
     void setupGame();
 };

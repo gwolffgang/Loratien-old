@@ -3,7 +3,7 @@
 
 extern Loratien *game;
 
-Loratien::Loratien() : window(new MainWindow), database(new Database), worldWidth(200), worldHeight(200), worldEarthStyle(true),
+Loratien::Loratien() : window(new MainWindow), database(NULL), worldWidth(200), worldHeight(200), worldEarthStyle(true),
     worldAltMax(10), worldAltMin(-10), worldRivers(worldWidth*worldHeight * 0.0005),
     worldTectonicPlates(10), worldMap(new QList<QList<Hex*>>),
     rivers(new QList<River*>), lakes(new QList<Lake*>), npcs(new QList<Char*>), group(new Group) /*,
