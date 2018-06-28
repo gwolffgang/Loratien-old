@@ -11,6 +11,6 @@ int main(int argc, char *argv[]) {
     app.setApplicationVersion("0.1");
 
     game = new Loratien;
-    game->setupGame();
+    game->newGame();
     return app.exec();
 }

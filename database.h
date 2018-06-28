@@ -42,6 +42,7 @@ public:
 
     // methods
     bool create();
+    bool reset();
 };
 
 #endif // DATABASE_H

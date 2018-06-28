@@ -18,6 +18,7 @@ public:
     inline QString getClimate() const {return climate;}
     inline int getCol() const {return col;}
     inline int getFertility() const {return fertility;}
+    inline bool getFogOfWar() const {return fogOfWar;}
     inline bool getLake() const {return lake;}
     inline QGraphicsLineItem *getLineDir1() {return lineDir1;}
     inline QGraphicsLineItem *getLineDir2() {return lineDir2;}
@@ -44,6 +45,7 @@ public:
     inline void setClimate(const QString newClimate) {climate = newClimate;}
     inline void setCol(const int newCol) {col = newCol;}
     inline void setFertility(const int newFertility) {fertility = newFertility;}
+    inline void setFogOfWar(const bool newBool) {fogOfWar = newBool;}
     inline void setLake(const bool newBool) {lake = newBool;}
     inline void setLineDir1(QGraphicsLineItem *newLine) {lineDir1 = newLine;}
     inline void setLineDir2(QGraphicsLineItem *newLine) {lineDir2 = newLine;}
@@ -80,6 +82,7 @@ private:
     // variables
     QPixmap pic;
     QBrush brush;
+    bool fogOfWar;
     QPen border;
     int col, row, tectonicPlate, tectonicDirection, fertility, riverSize;
     double altitude;

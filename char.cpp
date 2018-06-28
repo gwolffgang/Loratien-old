@@ -3,7 +3,7 @@
 
 extern Loratien *game;
 
-Char::Char(int fixed_gender, int fixed_age) :
+Char::Char(bool random, int fixed_gender, int fixed_age) :
     concept(""), firstName(""), lastName(""), birthday(""), day_of_death(""), virtue(""), vice(""),
     location(NULL), age(fixed_age), gender(fixed_gender), size(5), defense(2), speed(7), initiative(2),
     health(6), mana(0), willpower(2), health_current(6), mana_current(0), willpower_current(2),
@@ -11,7 +11,8 @@ Char::Char(int fixed_gender, int fixed_age) :
     academics(-3), crafts(-3), investigation(-3), magic(-3), medicine(-3), politics(-3), science(-3), spirituality(-3),
     athletics(-1), brawl(-1), riding(-1), ranged_combat(-1), larceny(-1), stealth(-1), survival(-1), weaponry(-1),
     animal_ken(-1), empathy(-1), expression(-1), intimidation(-1), persuation(-1), socialize(-1), streetwise(-1), subterfuge(-1) {
-    create_random();
+    location = game->getWorldMap()->at(rand()%game->getWorldWidth()).at(rand()%game->getWorldHeight());
+    if (random) create_random();
 }
 
 void Char::chooseAttributes(int group, int dots) {
@@ -192,7 +193,6 @@ void Char::create_random() {
     case 5: vice = "Sloth"; break;
     case 6: vice = "Wrath";
     }
-    location = game->getWorldMap()->at(rand()%game->getWorldWidth()).at(rand()%game->getWorldHeight());
     int groups[3] = {0,1,2};
     std::random_shuffle(std::begin(groups), std::end(groups));
     // attributes

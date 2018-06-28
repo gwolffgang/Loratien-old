@@ -15,7 +15,7 @@ Gui::Gui(double x, double y, double w, double h, QGraphicsItem *parent) : QGraph
     setPixmap(pic);
 
     selectedHexGui = new Hex(this);
-    Hex *selectedHexWorldMap = game->getWorldMap()->at(27).at(17);
+    Hex *selectedHexWorldMap = game->getPlayer()->getLocation();
     setSelectedHex(selectedHexWorldMap);
     selectedHexWorldMap->setBorder(QPen(Qt::red, 2, Qt::SolidLine));
     selectedHexWorldMap->draw();
@@ -33,4 +33,5 @@ void Gui::setSelectedHex(Hex *hex) {
     selectedHexGui->setRow(hex->getRow());
     selectedHexGui->setPic(hex->getPic());
     selectedHexGui->setBrush(hex->getBrush());
+    selectedHexGui->setFogOfWar((hex->getFogOfWar()));
 }

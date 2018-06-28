@@ -10,7 +10,8 @@ Database::Database(QString databaseType, QString hostName, QString userName, QSt
     db.setUserName(userName);
     db.setPassword(userPassword);
     db.setDatabaseName(databaseName);
-    create();
+    if (!reset()) qDebug() << "Cannot reset Database.";
+    if (!create()) qDebug() << "Cannot fill Database.";
 }
 
 void Database::createSequence(QString tableName) {
@@ -93,17 +94,20 @@ QString Database::getRandomFirstName(int gender) {
 
 void Database::saveCharacter(Char *c) {
     if (db.open()) {
-        QSqlQuery qry;
+        QSqlQuery qry, qry_name;
+        int name_id;
+        qry_name.exec("SELECT id FROM first_names_def WHERE name='"+c->getFirstName()+"'");
+        while (qry_name.next()) name_id = qry_name.value(0).toInt();
         QString query = "";
         query  = "INSERT INTO people (x,y,last_name,first_name,gender,age,birthday,day_of_death,concept,virtue,vice,size_,";
-        query += "defense, speed, initiative, health, health_current, mana, mana_current, willpower, willpower_current,";
-        query += "intelligence, wits, resolve, strength, dexterity, stamina, presence, manipulation, composure,";
-        query += "academics, crafts, investigation, magic, medicine, politics, science, spirituality,";
-        query += "athletics, brawl, riding, ranged_combat, larceny, stealth, survival, weaponry,";
-        query += "animal_ken, empathy, expression, intimidation, persuation, socialize, streetwise, subterfuge)";
+        query += "defense,speed,initiative,health,health_current,mana,mana_current,willpower,willpower_current,";
+        query += "intelligence,wits,resolve,strength,dexterity,stamina,presence,manipulation,composure,";
+        query += "academics,crafts,investigation,magic,medicine,politics,science,spirituality,";
+        query += "athletics,brawl,riding,ranged_combat,larceny,stealth,survival,weaponry,";
+        query += "animal_ken,empathy,expression,intimidation,persuation,socialize,streetwise,subterfuge) ";
         query += "VALUES ("+QString::number(c->getLocation()->getCol())+","+QString::number(c->getLocation()->getRow())+",'";
-        query += c->getLastName()+"','"+c->getFirstName()+"',"+QString::number(c->getGender())+",'"+QString::number(c->getAge())+"',";
-        query += c->getBirthday()+",'"+c->getDayOfDeath()+"','"+c->getConcept()+"','"+c->getVirtue()+"','"+c->getVice()+"',";
+        query += c->getLastName()+"',"+QString::number(name_id)+","+QString::number(c->getGender())+","+QString::number(c->getAge())+",'";
+        query += c->getBirthday()+"','"+c->getDayOfDeath()+"','"+c->getConcept()+"','"+c->getVirtue()+"','"+c->getVice()+"',";
         query += QString::number(c->getSize())+","+QString::number(c->getDefense())+","+QString::number(c->getSpeed())+",";
         query += QString::number(c->getInitiative())+","+QString::number(c->getHealth())+","+QString::number(c->getHealthCurrent())+",";
         query += QString::number(c->getMana())+","+QString::number(c->getManaCurrent())+",";
@@ -118,14 +122,21 @@ void Database::saveCharacter(Char *c) {
         query += QString::number(c->getLarceny())+","+QString::number(c->getStealth())+","+QString::number(c->getSurvival())+",";
         query += QString::number(c->getWeaponry())+","+QString::number(c->getAnimalKen())+","+QString::number(c->getEmpathy())+",";
         query += QString::number(c->getExpression())+","+QString::number(c->getIntimidation())+","+QString::number(c->getPersuation())+",";
-        query += QString::number(c->getSocialize())+","+QString::number(c->getStreetwise())+","+QString::number(c->getSubterfuge())+")";
+        query += QString::number(c->getSocialize())+","+QString::number(c->getStreetwise())+","+QString::number(c->getSubterfuge())+") ";
         if (!qry.exec(query)) qDebug() << qry.lastError().text();
     } else qDebug() << "Failed to connect to database." << db.lastError().text();
 }
 
 void Database::saveFieldDefs() {
     QSqlQuery qry;
-    if (!qry.exec("INSERT INTO fields_def (type, passable) VALUES ('plain', 1)")) qDebug() << qry.lastError().text();
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('plain', 1)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('field', 1)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('building', 1)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('forest', 1)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('swamp', 1)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('lake', 0)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('river', 0)");
+    qry.exec("INSERT INTO fields_def (type, passable) VALUES ('bridge', 1)");
 }
 
 void Database::saveNames(int gender) {
@@ -158,8 +169,6 @@ void Database::saveVillageMap() {
 
 bool Database::create() {
     if (db.open()) {
-        dropTable("all");
-
         createTable("fields_def", "id");
         addColumn("fields_def", "type", "VARCHAR(10)", true);
         addColumn("fields_def", "passable", "BOOL", true, "1");
@@ -181,11 +190,10 @@ bool Database::create() {
         addColumn("people", "y", "INTEGER", true);
         addForeignKey("people", "x,y", "village_map", "x,y", "people_location");
         /*addColumn("people", "last_name", "INTEGER", true);
-        addForeignKey("people", "last_name", "first_names_def", "id");
-        addColumn("people", "first_name", "INTEGER", true);
-        addForeignKey("people", "first_name", "first_names_def", "id");*/
+        addForeignKey("people", "last_name", "first_names_def", "id");*/
         addColumn("people", "last_name", "VARCHAR(20)", true);
-        addColumn("people", "first_name", "VARCHAR(20)", true);
+        addColumn("people", "first_name", "INTEGER", true);
+        addForeignKey("people", "first_name", "first_names_def", "id");
         addColumn("people", "gender", "BOOL", true, "1");
         addColumn("people", "age", "SMALLINT", true);
         addColumn("people", "birthday", "VARCHAR(11)", true);
@@ -237,6 +245,19 @@ bool Database::create() {
         addColumn("people", "streetwise", "SMALLINT", true, "-1");
         addColumn("people", "subterfuge", "SMALLINT", true, "-1");
         db.close();
+    } else {
+        qDebug() << "Failed to connect to database." << db.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+bool Database::reset() {
+    if (db.open()) {
+        QSqlQuery qry;
+        qry.exec("DROP DATABASE Loratien");
+        qry.exec("CREATE DATABASE Loratien");
+        qry.exec("USE Loratien");
     } else {
         qDebug() << "Failed to connect to database." << db.lastError().text();
         return false;

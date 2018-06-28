@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QDesktopServices>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsPolygonItem>
 #include <QGraphicsScene>
@@ -24,7 +23,6 @@ class MainWindow : public QMainWindow {
 public:
     // attributes
     QRect desktop;
-    QList<Hex*> *springs, *lakes;
 
     // constructors
     explicit MainWindow(QWidget *parent = NULL);
@@ -35,36 +33,23 @@ public:
     // getter
     inline Gui *getGuiHexInfo() {return guiHexInfo;}
     inline Gui *getGuiMenu() {return guiMenu;}
-    inline int getHexSize() {return hexSize;}
     inline bool getLeftClick() {return leftClick;}
     inline int getMaxRiverSize() {return maxRiverSize;}
     inline QPointF getMousePos() {return mousePos;}
-    double getPercentAlt(double percent);
     inline bool getRightClick() {return rightClick;}
 
     // setter
-    inline void setHexSize(int newInt) {hexSize = newInt;}
     inline void setLeftClick(bool newBool) {leftClick = newBool;}
     inline void setMaxRiverSize(int newInt) {maxRiverSize = newInt;}
     inline void setMousePos(QPointF newPointF) {mousePos = newPointF;}
     inline void setRightClick(bool newBool) {rightClick = newBool;}
 
     // methods
-    void colorizePlates();
-    void colorizeWorldMap();
-    void constructWorldMap();
     void dragWorldMap(QGraphicsSceneMouseEvent *event);
-    void evaluateHexes();
-    void generateWorldMap();
-    void placeCities();
-    void placeRivers();
-    void polishWorldMap();
+    void drawHexes(int radius, int hexSize);
     void refresh();
     void repositionGui(double offspringX, double offspringY);
     void setupGui();
-    void setupWorldMap();
-    void simulateTectonicMovement(int range = 2);
-    void translateValuesToWorldMap();
 
 private:
     // attributes
@@ -72,8 +57,8 @@ private:
     QGraphicsScene *scene;
     QScreen *screen;
     QString windowTitle;
-    int hexSize, maxRiverSize;
-    double percentMountain, percentOcean;
+    QList<QList<Hex*>> *hexes;
+    int maxRiverSize;
     Gui *guiMenu, *guiHexInfo;
     QPointF mousePos;
     bool rightClick, leftClick;

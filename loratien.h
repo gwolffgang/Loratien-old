@@ -1,6 +1,7 @@
 #ifndef LORATIEN_H
 #define LORATIEN_H
 
+#include <QDesktopWidget>
 #include <QtSql>
 #include <QtDebug>
 #include <QPainter>
@@ -23,16 +24,21 @@ private:
     // attributes
     MainWindow *window;
     Database *database;
-    int worldWidth, worldHeight;
+    int worldWidth, worldHeight, hexesRadius, hexSize;
     bool worldEarthStyle;
+    double percentOcean, percentMountain, percentMountainPeak;
     int worldAltMax, worldAltMin, worldRivers, worldTectonicPlates;
     QList<QList<Hex*>> *worldMap;
     QList<River*> *rivers;
     QList<Lake*> *lakes;
+    QList<Hex*> *springs;
     //QList<City*>*cities;
     //QList<Village*> *villages;
-    QList<Char*> *npcs;
     Group *group;
+    Char *player;
+    QList<Char*> *npcs;
+    int amountNPCs;
+
 
 public:
     // constructors
@@ -40,8 +46,13 @@ public:
 
     // getter
     inline Database *getDatabase() {return database;}
+    inline Group *getGroup() {return group;}
+    inline int getHexSize() {return hexSize;}
+    inline int getHexesRadius() {return hexesRadius;}
     inline QList<Lake*> *getLakes() {return lakes;}
     inline QList<Char*> *getNpcs() {return npcs;}
+    double getPercentAlt(double percent);
+    inline Char *getPlayer() {return player;}
     inline QList<River*> *getRivers() {return rivers;}
     QList<River*> getRivers(Hex *hex);
     inline MainWindow *getWindow() {return window;}
@@ -56,9 +67,23 @@ public:
 
     // setter
     inline void setDatabase(Database *newDatabase) {database = newDatabase;}
+    inline void setHexSize(int newSize) {hexSize = newSize;}
 
     // methods
-    void setupGame();
+    void colorizePlates();
+    void colorizeWorldMap();
+    void constructWorldMap();
+    void createNPCs();
+    void createPlayerChar();
+    void evaluateHexes();
+    void generateWorldMap();
+    void newGame();
+    void placeCities();
+    void placeRivers();
+    void polishWorldMap();
+    void setupWorldMap();
+    void simulateTectonicMovement(int range = 2);
+    void translateValuesToWorldMap();
 };
 
 #endif // LORATIEN_H

@@ -5,13 +5,13 @@
 extern Loratien *game;
 
 River::River(Hex *hex, int dir) : name("River"), watercourse(new QList<Hex*>), direction(dir),
-    north(QPointF(game->getWindow()->getHexSize(), 0.0)),
-    northeast(QPointF(game->getWindow()->getHexSize() * 1.75, sqrt(3) * 0.25 * game->getWindow()->getHexSize())),
-    northwest(QPointF(game->getWindow()->getHexSize() * 0.25, sqrt(3) * 0.25 * game->getWindow()->getHexSize())),
-    south(QPointF(game->getWindow()->getHexSize(), sqrt(3) * game->getWindow()->getHexSize())),
-    southeast(QPointF(game->getWindow()->getHexSize() * 1.75, sqrt(3) * 0.75 * game->getWindow()->getHexSize())),
-    southwest(QPointF(game->getWindow()->getHexSize() * 0.25, sqrt(3) * 0.75 * game->getWindow()->getHexSize())),
-    center(QPointF(game->getWindow()->getHexSize(), sqrt(3) * 0.5 * game->getWindow()->getHexSize())),
+    north(QPointF(game->getHexSize(), 0.0)),
+    northeast(QPointF(game->getHexSize() * 1.75, sqrt(3) * 0.25 * game->getHexSize())),
+    northwest(QPointF(game->getHexSize() * 0.25, sqrt(3) * 0.25 * game->getHexSize())),
+    south(QPointF(game->getHexSize(), sqrt(3) * game->getHexSize())),
+    southeast(QPointF(game->getHexSize() * 1.75, sqrt(3) * 0.75 * game->getHexSize())),
+    southwest(QPointF(game->getHexSize() * 0.25, sqrt(3) * 0.75 * game->getHexSize())),
+    center(QPointF(game->getHexSize(), sqrt(3) * 0.5 * game->getHexSize())),
     penRiver(QPen(Qt::blue, 0, Qt::SolidLine)) {
     int worldHeight = game->getWorldHeight();
     int worldWidth = game->getWorldWidth();

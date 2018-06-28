@@ -5,9 +5,9 @@
 extern Loratien *game;
 
 Hex::Hex(QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
-    brush(QBrush(QColor(0, 0, 0), Qt::SolidPattern)), border(QPen(Qt::black)),
+    brush(QBrush(QColor(0, 0, 0), Qt::SolidPattern)), fogOfWar(true), border(QPen(Qt::black)),
     col(-1), row(-1), tectonicPlate(-1), tectonicDirection(-1), fertility(0), riverSize(0), altitude(-99),
-    type(' '), climate(' '), lake(false), river(false),
+    type(""), climate(""), lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {
     setAcceptHoverEvents(true); // allow special mouse events
@@ -32,7 +32,7 @@ QList<Hex*> Hex::getNeighborHexes(int radius, bool withOriginHex) {
 }
 
 void Hex::draw(int size) {
-    if (-1 == size) size = game->getWindow()->getHexSize();
+    if (-1 == size) size = game->getHexSize();
     double width = 2 * size, height = sqrt(3) * size;
     pic = QPixmap(width, height);
     pic.fill(Qt::transparent);
@@ -84,7 +84,8 @@ void Hex::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
 }
 
 void Hex::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-   if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
+   //if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
+    event->ignore();
 }
 
 void Hex::mousePressEvent(QGraphicsSceneMouseEvent *event) {

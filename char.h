@@ -17,7 +17,7 @@ private:
 
 public:
     // constructors
-    Char(int fixed_gender = -1, int fixed_age = -1);
+    Char(bool random = true, int fixed_gender = -1, int fixed_age = -1);
 
     // getter
     inline int getAcademics() {return academics;}
@@ -73,6 +73,9 @@ public:
     inline int getWillpowerCurrent() {return willpower_current;}
     inline int getWits() {return wits;}
     inline int getStamina() {return stamina;}
+
+    //setter
+    inline void setLocation(Hex *newLocation) {location = newLocation;}
 
     // methods
     void chooseAttributes(int group, int dots);

@@ -3,6 +3,6 @@
 
 extern Loratien *game;
 
-Group::Group() : name(""), location(NULL) {
-    location = NULL; // Zeile nur, um Warnung zu unterdrücken. ... Zeile löschen!
+Group::Group(Char *leader) : name(""), members(new QList<Char*>), location(leader->getLocation()) {
+    members->append(leader);
 }
