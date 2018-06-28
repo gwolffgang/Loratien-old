@@ -79,7 +79,7 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
-    // variables
+    // attributes
     QPixmap pic;
     QBrush brush;
     bool fogOfWar;

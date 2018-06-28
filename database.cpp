@@ -244,6 +244,25 @@ bool Database::create() {
         addColumn("people", "socialize", "SMALLINT", true, "-1");
         addColumn("people", "streetwise", "SMALLINT", true, "-1");
         addColumn("people", "subterfuge", "SMALLINT", true, "-1");
+
+        createTable("building_types_def", "id");
+        addColumn("building_types_def", "type", "VARCHAR(20)", 1);
+
+        createTable("buildings_def", "id");
+        addColumn("buildings_def", "type", "INTEGER", true, "1");
+        addForeignKey("buildings_def", "type", "building_types_def", "id");
+        addColumn("buildings_def", "size_", "SMALLINT", true, "2");
+        addColumn("buildings_def", "max_people", "SMALLINT", true, "0");
+        addColumn("buildings_def", "max_worker", "SMALLINT", true, "0");
+
+        createTable("buildings", "id");
+        addColumn("buildings", "x", "INTEGER", true);
+        addColumn("buildings", "y", "INTEGER", true);
+        addForeignKey("buildings", "x,y", "village_map", "x,y", "buildings_location");
+        addColumn("buildings", "building", "INTEGER", true);
+        addForeignKey("buildings", "building", "buildings_def", "id");
+        addColumn("buildings", "condition_", "SMALLINT", true, "100");
+
         db.close();
     } else {
         qDebug() << "Failed to connect to database." << db.lastError().text();

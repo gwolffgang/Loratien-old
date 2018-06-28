@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     lake.cpp \
     gui.cpp \
     char.cpp \
-    database.cpp
+    database.cpp \
+    building.cpp
 
 HEADERS  += mainwindow.h \
     loratien.h \
@@ -43,7 +44,8 @@ HEADERS  += mainwindow.h \
     lake.h \
     gui.h \
     char.h \
-    database.h
+    database.h \
+    building.h
 
 FORMS    += mainwindow.ui
 

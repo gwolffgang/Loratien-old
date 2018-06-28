@@ -1,7 +1,7 @@
 #include "loratien.h"
 #include "mainwindow.h"
 
-Loratien::Loratien() : window(NULL), database(NULL), worldWidth(50), worldHeight(50), hexesRadius(5), hexSize(0), worldEarthStyle(false),
+Loratien::Loratien() : window(NULL), database(NULL), worldWidth(50), worldHeight(50), hexesRadius(9), hexSize(0), worldEarthStyle(false),
     percentOcean(0.60), percentMountain(0.15), percentMountainPeak(0.01), worldAltMax(10), worldAltMin(-10),
     worldRivers(worldWidth*worldHeight * 0.0005), worldTectonicPlates(10), worldMap(new QList<QList<Hex*>>),
     rivers(new QList<River*>), lakes(new QList<Lake*>), springs(new QList<Hex*>), group(NULL), player(NULL), npcs(new QList<Char*>), amountNPCs(20)  /*,
