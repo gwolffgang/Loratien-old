@@ -12,7 +12,8 @@ class Database {
 
 private:
     QSqlDatabase db;
-    QString db_type;
+    QString db_type, sqlFile;
+    bool saveInDatabase, saveInFile;
 
 public:
     // constructor
@@ -20,7 +21,7 @@ public:
 
     // creates
     void createSequence(QString tableName);
-    void createTable(QString tableName, QString primaryKeys);
+    void createTable(QString tableName, QString primaryKeys = "id");
 
     // drops
     void dropTable(QString tableName);
@@ -32,16 +33,21 @@ public:
     // selects
     QString getRandomFirstName(int gender);
 
-    // inputs
+    // inserts
+    void saveBuildingDefs();
+    void saveBuildingTypeDefs();
     void saveCharacter(Char *c);
     void saveFieldDefs();
     void saveNames(int gender);
+    void saveProduction();
+    void saveProductionTypeDefs();
     void saveVillageMap();
 
     // updates
 
     // methods
     bool create();
+    void executeQuerylist(QList<QString> querylist);
     bool reset();
 };
 

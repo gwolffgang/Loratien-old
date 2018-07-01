@@ -168,7 +168,7 @@ void Loratien::newGame() {
     window->show();
     constructWorldMap();
     setupWorldMap();
-    database = new Database;
+    database = new Database(/*"QOCI"*/);
     createPlayerChar();
     createNPCs();
     //colorizePlates();
