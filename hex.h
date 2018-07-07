@@ -9,7 +9,7 @@ class Hex : public QGraphicsPixmapItem {
 
 public:
     // constructors
-    explicit Hex(QGraphicsItem *parent = NULL);
+    explicit Hex(int hexCol = -1, int hexRow = -1, QGraphicsItem *parent = NULL);
 
     // getter
     inline double getAltitude() const {return altitude;}

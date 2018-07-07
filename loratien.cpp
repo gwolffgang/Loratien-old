@@ -1,14 +1,21 @@
 #include "loratien.h"
 #include "mainwindow.h"
 
-Loratien::Loratien() : window(NULL), database(NULL), worldWidth(50), worldHeight(50), hexesRadius(9), hexSize(0), worldEarthStyle(false),
-    percentOcean(0.60), percentMountain(0.15), percentMountainPeak(0.01), worldAltMax(10), worldAltMin(-10),
-    worldRivers(worldWidth*worldHeight * 0.0005), worldTectonicPlates(10), worldMap(new QList<QList<Hex*>>),
-    rivers(new QList<River*>), lakes(new QList<Lake*>), springs(new QList<Hex*>), group(NULL), player(NULL), npcs(new QList<Char*>), amountNPCs(20)  /*,
-    cities(new QList<City*>), villages(new QList<Village*>)*/ {
-    if (worldEarthStyle && 1 == worldWidth%2) worldWidth++;
+Loratien::Loratien() :
+    window(NULL), database(NULL), playzoneRadius(10), regionRadius(2), sectorRadius(2), hexSize(0), worldWidth(2), worldHeight(2),
+    worldEarthStyle(false), percentOcean(0.60), percentMountain(0.15), percentMountainPeak(0.01), worldAltMax(10), worldAltMin(-10),
+    worldRivers(10), worldTectonicPlates(10),
+    worldMap(new QList<QList<Hex*>>), worldRegions(new QList<QList<Region*>>), rivers(new QList<River*>), lakes(new QList<Lake*>), springs(new QList<Hex*>),
+    group(NULL), player(NULL), npcs(new QList<Char*>), amountNPCs(20) /*, cities(new QList<City*>), villages(new QList<Village*>)*/ {
+    if (regionRadius < 1) regionRadius = 1;
+    if (sectorRadius < 1) sectorRadius = 1;
+    sectorWidth = sectorHeight = 2*sectorRadius+1;
+    regionWidth = sectorWidth*(2*regionRadius+1)-2*regionRadius;
+    regionHeight = 3*regionRadius*sectorRadius+2*sectorRadius+1;
+    worldMapWidth = (regionWidth-1)/2-(sectorRadius-1) + worldWidth*((regionWidth-1)/2+sectorRadius);
+    worldMapHeight = (worldHeight*regionHeight - (worldHeight-1)*sectorHeight) + (regionHeight-sectorHeight)/2;
 
-    // new seed for randomizer
+    // seed for randomizer
     unsigned int seed = 23;
     if (seed != 0) srand(seed);
     else srand(unsigned(time(NULL)));
@@ -18,8 +25,8 @@ double Loratien::getPercentAlt(double percent) {
     if (percent > 1.0) percent = 1.0;
     else if (percent < 0.0) percent = 0.0;
     QList<double> list;
-    for (int x = 0; x < worldWidth; x++) {
-        for (int y = 0; y < worldHeight; y++) {
+    for (int x = 0; x < worldMapWidth; x++) {
+        for (int y = 0; y < worldMapHeight; y++) {
             list.append(worldMap->at(x).at(y)->getAltitude());
         }
     }
@@ -41,8 +48,8 @@ QList<River*> Loratien::getRivers(Hex *hex) {
 }
 
 void Loratien::colorizePlates() {
-    for (int col = 0; col < worldWidth; col++) {
-        for (int row = 0; row < worldHeight; row++) {
+    for (int col = 0; col < worldMapWidth; col++) {
+        for (int row = 0; row < worldMapHeight; row++) {
             QBrush brush = QBrush(QColor(0, 0, 0), Qt::SolidPattern);
             double alt = worldMap->at(col).at(row)->getTectonicPlate();
             int paint = (100 + 150 * (alt / worldTectonicPlates));
@@ -87,16 +94,24 @@ void Loratien::colorizeWorldMap() {
 
 void Loratien::constructWorldMap() {
     QList<Hex*> hexesCol;
-    for (int col = 0; col < worldWidth; col++) {
+    for (int hexCol = 0; hexCol < worldMapWidth; hexCol++) {
         hexesCol.clear();
-        for (int row = 0; row < worldHeight; row++) {
-            Hex *hex = new Hex;
-            hex->setCol(col);
-            hex->setRow(row);
-            hex->setPos(hexSize * 1.5 * col, hexSize * sqrt(3) * row + sqrt(3)/2 * hexSize * (col%2));
+        for (int hexRow = 0; hexRow < worldMapHeight; hexRow++) {
+            Hex *hex = new Hex(hexCol, hexRow);
             hexesCol.append(hex);
         }
         worldMap->append(hexesCol);
+    }
+    QList<Region*> regionsRow;
+    for (int regionRow = 0; regionRow < worldHeight; regionRow++) {
+        regionsRow.clear();
+        for (int regionCol = 0; regionCol < worldWidth; regionCol++) {
+            int hexCol = (regionWidth-1)/2 + regionCol*((regionWidth-1)/2+sectorRadius);
+            int hexRow = (regionHeight-1)/2 + regionRow*regionHeight - regionRow*(worldHeight-1)*sectorHeight + (regionHeight-sectorHeight)/2*(regionCol%2);
+            Region *region = new Region(hexCol, hexRow);
+            regionsRow.append(region);
+        }
+        worldRegions->append(regionsRow);
     }
 }
 
@@ -107,8 +122,8 @@ void Loratien::createPlayerChar() {
 }
 
 void Loratien::evaluateHexes() {
-    for (int col = 0; col < worldWidth; col++) {
-        for (int row = 0; row < worldHeight; row++) {
+    for (int col = 0; col < worldMapWidth; col++) {
+        for (int row = 0; row < worldMapHeight; row++) {
             Hex *hex = worldMap->at(col).at(row);
             hex->evaluateFertility();
             hex->evaluateResources();
@@ -120,8 +135,8 @@ void Loratien::generateWorldMap() {
     QList<Hex*> hexesList;
     Hex *currentHex = NULL;
     for (int k = 0; k < worldTectonicPlates; k++) {
-        int hexCol = rand() % worldWidth;
-        int hexRow = rand() % worldHeight;
+        int hexCol = rand() % worldMapWidth;
+        int hexRow = rand() % worldMapHeight;
         currentHex = worldMap->at(hexCol).at(hexRow);
         if (-1 == currentHex->getTectonicPlate()) {
             currentHex->setTectonicPlate(k);
@@ -152,7 +167,7 @@ void Loratien::generateWorldMap() {
                 }
         }
         if (altCount != 0) {
-            alt = altSum / altCount - worldEarthStyle * 3 * abs(worldHeight/2 - hexRow) / worldHeight;
+            alt = altSum / altCount - worldEarthStyle * 3 * abs(worldMapHeight/2 - hexRow) / worldMapHeight;
             nextHex->setAltitude(alt + rand()%11 - 5);
         }
         hexesList.removeAt(randItem);
@@ -170,10 +185,10 @@ void Loratien::newGame() {
     setupWorldMap();
     database = new Database(/*"QOCI"*/);
     createPlayerChar();
-    createNPCs();
+    //createNPCs();
     //colorizePlates();
     colorizeWorldMap();
-    window->drawHexes(hexesRadius, hexSize);
+    window->drawHexes(playzoneRadius, hexSize);
     window->setupGui();
 }
 
@@ -184,8 +199,8 @@ void Loratien::placeCities() {
 void Loratien::placeRivers() {
     double snowLevel = getPercentAlt(1-((1-percentOcean) * 0.02));
     double mountainLevel = getPercentAlt(1-((1-percentOcean) * percentMountain));
-    for (int col = 0; col < worldWidth; col++) {
-        for (int row = 0; row < worldHeight; row++) {
+    for (int col = 0; col < worldMapWidth; col++) {
+        for (int row = 0; row < worldMapHeight; row++) {
             Hex *currentHex = worldMap->at(col).at(row);
             double currentAlt = currentHex->getAltitude();
             if (mountainLevel <= currentAlt && currentAlt <= snowLevel) springs->append(currentHex);
@@ -198,7 +213,7 @@ void Loratien::placeRivers() {
         int hexCol = spring->getCol();
         int hexRow = spring->getRow();
         if (!spring->getLake() && !spring->getRiver()) {
-            if (!((!worldEarthStyle && (hexCol == 0 || hexCol == worldWidth-1)) || hexRow == 0 || hexRow == worldHeight-1)) {
+            if (!((!worldEarthStyle && (hexCol == 0 || hexCol == worldMapWidth-1)) || hexRow == 0 || hexRow == worldMapHeight-1)) {
                 River *river = new River(spring);
                 rivers->append(river);
             }
@@ -212,8 +227,8 @@ void Loratien::polishWorldMap() {
     int count = 0;
     springs->clear();
     Hex *currentHex = NULL;
-    for (int worldCol = 0; worldCol < worldWidth; worldCol++) {
-        for (int worldRow = 0; worldRow < worldHeight; worldRow++) {
+    for (int worldCol = 0; worldCol < worldMapWidth; worldCol++) {
+        for (int worldRow = 0; worldRow < worldMapHeight; worldRow++) {
             alt = 0.0;
             count = 0;
             currentHex = worldMap->at(worldCol).at(worldRow);
@@ -232,8 +247,8 @@ void Loratien::polishWorldMap() {
     double stretchLow = 0.0;
     double lowest = getPercentAlt(0);
     if (lowest != 0) stretchLow = worldAltMin / lowest;
-    for (int worldCol = 0; worldCol < worldWidth; worldCol++) {
-        for (int worldRow = 0; worldRow < worldHeight; worldRow++) {
+    for (int worldCol = 0; worldCol < worldMapWidth; worldCol++) {
+        for (int worldRow = 0; worldRow < worldMapHeight; worldRow++) {
             double newAlt = worldMap->at(worldCol).at(worldRow)->getAltitude();
             if (newAlt > 0) {
                 double stretchedHeight = newAlt * stretchHigh;
@@ -255,8 +270,8 @@ void Loratien::setupWorldMap() {
 void Loratien::simulateTectonicMovement(int range) {
     Hex *currentHex = NULL;
     Hex *neighborHex = NULL;
-    for (int col = 0; col < worldWidth; col++) {
-        for (int row = 0; row < worldHeight; row++) {
+    for (int col = 0; col < worldMapWidth; col++) {
+        for (int row = 0; row < worldMapHeight; row++) {
             currentHex = worldMap->at(col).at(row);
             currentHex->setTempNumber(-999);
             neighborHex = NULL;
@@ -284,8 +299,8 @@ void Loratien::simulateTectonicMovement(int range) {
                 neighborCol = col - range;
                 neighborRow = row-ceil((double)range/2)+(col%2)*(range%2);
             }
-            if ((worldEarthStyle || (-1 < neighborCol && neighborCol < worldWidth)) && -1 < neighborRow && neighborRow < worldHeight) {
-                neighborHex = worldMap->at((worldWidth+neighborCol)%worldWidth).at(neighborRow);
+            if ((worldEarthStyle || (-1 < neighborCol && neighborCol < worldMapWidth)) && -1 < neighborRow && neighborRow < worldMapHeight) {
+                neighborHex = worldMap->at((worldMapWidth+neighborCol)%worldMapWidth).at(neighborRow);
                 if (currentHex->getTectonicDirection() != neighborHex->getTectonicDirection()) {
                     currentHex->setAltitude((double)range/2*currentHex->getAltitude()+neighborHex->getAltitude());
                 }
@@ -298,8 +313,8 @@ void Loratien::translateValuesToWorldMap() {
     double waterLevel = getPercentAlt(percentOcean);
     double minValue = getPercentAlt(0.0);
     double maxValue = getPercentAlt(1.0);
-    for (int x = 0; x < worldWidth; x++) {
-        for (int y = 0; y < worldHeight; y++) {
+    for (int x = 0; x < worldMapWidth; x++) {
+        for (int y = 0; y < worldMapHeight; y++) {
             double alt = worldMap->at(x).at(y)->getAltitude() - waterLevel;
             if (alt > 0) alt = worldAltMax / maxValue * alt;
             else alt = worldAltMin / minValue * alt;

@@ -12,8 +12,7 @@ class Database {
 
 private:
     QSqlDatabase db;
-    QString db_type, sqlFile;
-    bool saveInDatabase, saveInFile;
+    QString db_type, sqlFile, sqlFileFormats;
 
 public:
     // constructor
@@ -34,20 +33,16 @@ public:
     QString getRandomFirstName(int gender);
 
     // inserts
-    void saveBuildingDefs();
-    void saveBuildingTypeDefs();
     void saveCharacter(Char *c);
-    void saveFieldDefs();
-    void saveNames(int gender);
     void saveProduction();
-    void saveProductionTypeDefs();
-    void saveVillageMap();
+    void saveTypeLists(QString lists);
+    void saveVillage();
 
     // updates
 
     // methods
     bool create();
-    void executeQuerylist(QList<QString> querylist);
+    void executeQuerylist(QList<QString> querylist, bool suppressErrors = false);
     bool reset();
 };
 

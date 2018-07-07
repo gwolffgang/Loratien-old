@@ -34,7 +34,9 @@ SOURCES += main.cpp\
     gui.cpp \
     char.cpp \
     database.cpp \
-    building.cpp
+    building.cpp \
+    sector.cpp \
+    region.cpp
 
 HEADERS  += mainwindow.h \
     loratien.h \
@@ -45,7 +47,9 @@ HEADERS  += mainwindow.h \
     gui.h \
     char.h \
     database.h \
-    building.h
+    building.h \
+    sector.h \
+    region.h
 
 FORMS    += mainwindow.ui
 

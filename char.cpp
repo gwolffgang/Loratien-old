@@ -11,7 +11,7 @@ Char::Char(bool random, int fixed_gender, int fixed_age) :
     academics(-3), crafts(-3), investigation(-3), magic(-3), medicine(-3), politics(-3), science(-3), spirituality(-3),
     athletics(-1), brawl(-1), riding(-1), ranged_combat(-1), larceny(-1), stealth(-1), survival(-1), weaponry(-1),
     animal_ken(-1), empathy(-1), expression(-1), intimidation(-1), persuation(-1), socialize(-1), streetwise(-1), subterfuge(-1) {
-    location = game->getWorldMap()->at(rand()%game->getWorldWidth()).at(rand()%game->getWorldHeight());
+    location = game->getWorldMap()->at(rand()%game->getWorldMapWidth()).at(rand()%game->getWorldMapHeight());
     if (random) create_random();
 }
 

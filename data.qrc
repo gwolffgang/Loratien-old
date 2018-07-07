@@ -1,6 +1,40 @@
 <RCC>
     <qresource prefix="/">
-        <file>data/lists/names_male.list</file>
-        <file>data/lists/names_female.list</file>
+        <file>data/lists/type_def/animal_type_def.list</file>
+        <file>data/lists/type_def/building_type_def.list</file>
+        <file>data/lists/type_def/cloth_type_def.list</file>
+        <file>data/lists/type_def/field_def.list</file>
+        <file>data/lists/type_def/first_name_def.list</file>
+        <file>data/lists/type_def/food_type_def.list</file>
+        <file>data/lists/type_def/production_type_def.list</file>
+        <file>data/lists/type_def/relationship_type_def.list</file>
+        <file>data/lists/type_def/weapon_melee_type_def.list</file>
+        <file>data/lists/type_def/weapon_ranged_type_def.list</file>
+        <file>building.cpp</file>
+        <file>building.h</file>
+        <file>char.cpp</file>
+        <file>char.h</file>
+        <file>database.cpp</file>
+        <file>database.h</file>
+        <file>group.cpp</file>
+        <file>group.h</file>
+        <file>gui.cpp</file>
+        <file>gui.h</file>
+        <file>hex.cpp</file>
+        <file>hex.h</file>
+        <file>lake.cpp</file>
+        <file>lake.h</file>
+        <file>loratien.cpp</file>
+        <file>loratien.h</file>
+        <file>main.cpp</file>
+        <file>mainwindow.cpp</file>
+        <file>mainwindow.h</file>
+        <file>region.cpp</file>
+        <file>region.h</file>
+        <file>river.cpp</file>
+        <file>river.h</file>
+        <file>sector.cpp</file>
+        <file>sector.h</file>
+        <file>data/lists/def/building_def.list</file>
     </qresource>
 </RCC>

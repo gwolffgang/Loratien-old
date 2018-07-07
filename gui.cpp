@@ -14,7 +14,7 @@ Gui::Gui(double x, double y, double w, double h, QGraphicsItem *parent) : QGraph
     painter.end();
     setPixmap(pic);
 
-    selectedHexGui = new Hex(this);
+    selectedHexGui = new Hex(-1, -1, this);
     Hex *selectedHexWorldMap = game->getPlayer()->getLocation();
     setSelectedHex(selectedHexWorldMap);
     selectedHexWorldMap->setBorder(QPen(Qt::red, 2, Qt::SolidLine));

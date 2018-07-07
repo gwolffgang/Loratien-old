@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     // setup GUI
     ui->setupUi(this);
     desktop = screen->geometry();
-    int bbb = (desktop.height()-10) / ((2*game->getHexesRadius()+1.5) * sqrt(3));
+    int bbb = (desktop.height()-10) / ((2*game->getPlayzoneRadius()+1.5) * sqrt(3));
     game->setHexSize(bbb);
     setWindowTitle(windowTitle);
 
@@ -50,16 +50,16 @@ void MainWindow::drawHexes(int radius, int hexSize) {
     Hex *location = game->getGroup()->getLocation();
     int hexCol = location->getCol();
     int hexRow = location->getRow();
-    int worldWidth = game->getWorldWidth();
-    int worldHeight = game->getWorldHeight();
+    int worldWidth = game->getWorldMapWidth();
+    int worldHeight = game->getWorldMapHeight();
     QList<Hex*> hexesCol;
     for (int col = -radius; col <= radius; col++) {
-        if (col+radius == game->getWorldWidth()) break;
+        if (col+radius == worldWidth) break;
         hexesCol.clear();
         for (int row = -radius; row <= radius; row++) {
             if ((game->getWorldEarthStyle() || (-1 < hexCol+col && hexCol+col < worldWidth)) && -1 < hexRow+row && hexRow+row < worldHeight) {
-                Hex *hex = game->getWorldMap()->at((worldWidth+hexCol+col)%worldWidth).at(hexRow+row);
-                hex->setPos(centerize + hexSize * 1.5 * (col+radius), 5 + hexSize * sqrt(3) * (row+radius) + sqrt(3)/2 * hexSize * (std::abs(col)%2));
+                Hex *hex = game->getWorldMap()->at((worldWidth+hexCol+col)%worldWidth).at(hexRow+row + abs(col%2)*(hexCol%2));
+                hex->setPos(centerize + hexSize * 1.5 * (col+radius), 5 + hexSize * sqrt(3) * (row+radius) + sqrt(3)/2 * hexSize * abs(col%2));
                 hexesCol.append(hex);
                 scene->addItem(hex);
             }

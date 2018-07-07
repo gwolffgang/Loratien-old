@@ -4,9 +4,9 @@
 
 extern Loratien *game;
 
-Hex::Hex(QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
+Hex::Hex(int hexCol, int hexRow, QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
     brush(QBrush(QColor(0, 0, 0), Qt::SolidPattern)), fogOfWar(true), border(QPen(Qt::black)),
-    col(-1), row(-1), tectonicPlate(-1), tectonicDirection(-1), fertility(0), riverSize(0), altitude(-99),
+    col(hexCol), row(hexRow), tectonicPlate(-1), tectonicDirection(-1), fertility(0), riverSize(0), altitude(-99),
     type(""), climate(""), lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {
@@ -17,12 +17,12 @@ QList<Hex*> Hex::getNeighborHexes(int radius, bool withOriginHex) {
     if (radius < 0) radius = 0;
     QList<Hex*> neighbors;
     bool worldEarthStyle = game->getWorldEarthStyle();
-    int worldHeight = game->getWorldHeight();
-    int worldWidth = game->getWorldWidth();
+    int worldHeight = game->getWorldMapHeight();
+    int worldWidth = game->getWorldMapWidth();
     for (int modCol = -radius; modCol <= radius; modCol++) {
             for (int modRow = -radius+abs(modCol)/2+(col%2)*(abs(modCol)%2); modRow <= radius-ceil(abs((double)modCol)/2)+(col%2)*(abs(modCol)%2); modRow++)  {
                 if ((withOriginHex || modCol != 0 || modRow != 0)
-                    && (worldEarthStyle || (!worldEarthStyle && -1 < col+modCol && col+modCol < worldWidth))
+                    && (worldEarthStyle || (-1 < col+modCol && col+modCol < worldWidth))
                     && -1 < row+modRow && row+modRow < worldHeight) {
                         neighbors.append(game->getWorldMap()->at((worldWidth+col+modCol) % worldWidth).at(row+modRow));
                 }

@@ -1,0 +1,11 @@
+name, type, size_, max_people, max_worker
+
+hut, (SELECT id FROM building_type_def WHERE type='residence'), 1, 2, 0
+house, (SELECT id FROM building_type_def WHERE type='residence'), 2, 4, 0
+greathouse, (SELECT id FROM building_type_def WHERE type='residence'), 3, 8, 0
+residence, (SELECT id FROM building_type_def WHERE type='residence'), 4, 12, 0
+farmhouse, (SELECT id FROM building_type_def WHERE type='farm'), 3, 7, 7
+farm, (SELECT id FROM building_type_def WHERE type='farm'), 4, 12, 12
+shrine, (SELECT id FROM building_type_def WHERE type='temple'), 1, 0, 1
+temple, (SELECT id FROM building_type_def WHERE type='temple'), 2, 2, 4
+greattemple, (SELECT id FROM building_type_def WHERE type='temple'), 3, 4, 8

@@ -3,65 +3,56 @@
 
 extern Loratien *game;
 
-Database::Database(QString databaseType, QString hostName, QString userName, QString userPassword, QString databaseName) :
-    db_type(databaseType), sqlFile(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + QStringLiteral("/village") + databaseType + QStringLiteral(".sql")),
-    saveInDatabase(true), saveInFile(true) {
+Database::Database(QString databaseType, QString hostName, QString userName, QString userPassword, QString databaseName) : db_type(databaseType),
+    sqlFile(""), sqlFileFormats("QMYSQL,QOCI") {
     db = QSqlDatabase::addDatabase(db_type);
     db.setHostName(hostName);
     db.setPort(3306);
     db.setUserName(userName);
     db.setPassword(userPassword);
     db.setDatabaseName(databaseName);
-    if (!reset()) qDebug() << "Cannot reset Database.";
+    if (!reset()) qDebug() << "Cannot clear Database.";
     if (!create()) qDebug() << "Cannot fill Database.";
 }
 
 void Database::createSequence(QString tableName) {
     QString query;
     QList<QString> querylist;
-    querylist.append("CREATE SEQUENCE " + tableName + "_sequence START WITH 1");
-    query  = "CREATE OR REPLACE TRIGGER " + tableName + "_on_insert ";
-    query += "BEFORE INSERT ON " + tableName;
-    query += "  FOR EACH ROW ";
-    query += "BEGIN ";
-    query += "  SELECT " + tableName + "_sequence.NEXTVAL ";
-    query += "  INTO :new.id ";
-    query += "  FROM dual; ";
-    query += "END; ";
-    query += "/ ";
-    querylist.append(query);
-    if (saveInDatabase) {
-        QSqlQuery qry;
-        foreach (QString query, querylist) if (!qry.exec(query)) qDebug() << qry.lastError();
-    }
-    if (saveInFile) {
-        QFile sql(sqlFile);
-        sql.open(QFile::WriteOnly | QFile::Text);
-        QTextStream out(&sql);
-        foreach (QString query, querylist) out << query << endl;
-    }
+    querylist.append("DROP SEQUENCE SQ_" + tableName + "|QOCI");
+    querylist.append("CREATE SEQUENCE SQ_" + tableName + " START WITH 1|QOCI");
+    querylist.append("CREATE OR REPLACE TRIGGER T_" + tableName + " BEFORE INSERT ON " + tableName + " FOR EACH ROW BEGIN SELECT SQ_" + tableName + ".NEXTVAL INTO :new.id FROM dual; END|QOCI");
+    querylist.append("/|QOCI");
+    executeQuerylist(querylist);
 }
 
 void Database::createTable(QString tableName, QString primaryKeys) {
     QString query;
     QList<QString> querylist;
+    querylist.append("");
     QStringList keys = primaryKeys.split(",");
-    if (db_type == "QOCI") createSequence(tableName);
-    query  = QString("CREATE TABLE " + tableName + "(");
-    foreach (QString key, keys) {
-        if (db_type == "QMYSQL" && keys.size() == 1) query += QString(key + " INTEGER AUTO_INCREMENT, ");
-        else query += QString(key + " INTEGER, ");
+    QStringList formats = sqlFileFormats.split(",");
+    foreach (QString format, formats){
+        query  = QString("CREATE TABLE " + tableName + "(");
+        foreach (QString key, keys) {
+            if (format == "QMYSQL" && keys.size() == 1) query += QString(key + " INTEGER AUTO_INCREMENT, ");
+            else query += QString(key + " INTEGER, ");
+        }
+        query += QString("CONSTRAINT PK_" + tableName + " PRIMARY KEY(" + primaryKeys + "))");
+        query += "|" + format;
+        querylist.append(query);
     }
     query += QString("CONSTRAINT PK_" + tableName + " PRIMARY KEY(" + primaryKeys + "))");
-    querylist.append("");
     querylist.append(query);
     executeQuerylist(querylist);
+    foreach (QString format, formats){
+        if (format == "QOCI" && keys.size() == 1) createSequence(tableName);
+    }
 }
 
 void Database::dropTable(QString tableName) {
+    QList<QString> querylist;
     if (tableName == "all") reset();
     else {
-        QList<QString> querylist;
         querylist.append("DROP TABLE " + tableName);
         executeQuerylist(querylist);
     }
@@ -69,12 +60,7 @@ void Database::dropTable(QString tableName) {
 
 void Database::addColumn(QString tableName, QString columnName, QString dataType, bool notNull, QString defaultValue) {
     QList<QString> querylist;
-    QString query = "ALTER TABLE " + tableName + " ADD " + columnName + " ";
-    if (dataType == "BOOL") {
-        if (db_type == "QMYSQL") query += QString("BOOL");
-        else if (db_type == "QOCI") query += QString("NUMBER(1,0)");
-        else query += QString("TINYINT");
-    } else query += dataType;
+    QString query = "ALTER TABLE " + tableName + " ADD " + columnName + " " + dataType;
     if (defaultValue != "") query += " DEFAULT " + defaultValue;
     if (notNull) query += " NOT NULL";
     querylist.append(query);
@@ -94,7 +80,7 @@ void Database::addForeignKey(QString tableName, QString columnName, QString link
 QString Database::getRandomFirstName(int gender) {
     if (db.open()) {
         QSqlQuery qry;
-        qry.exec("SELECT name FROM first_names_def WHERE gender = " + QString::number(gender));
+        qry.exec("SELECT name FROM first_name_def WHERE gender = " + QString::number(gender));
         db.close();
         int randomName = rand()%qry.size();
         while (qry.next()) if (randomName == qry.at()) return qry.value(0).toString();
@@ -102,51 +88,13 @@ QString Database::getRandomFirstName(int gender) {
     return "";
 }
 
-void Database::saveBuildingDefs() {
-    QList<QString> querylist;
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('hut',(SELECT id FROM building_type_def WHERE type='residence'),1,2,0)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('house',(SELECT id FROM building_type_def WHERE type='residence'),2,4,0)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('greathouse',(SELECT id FROM building_type_def WHERE type='residence'),3,8,0)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('residence',(SELECT id FROM building_type_def WHERE type='residence'),4,12,0)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('farmhouse',(SELECT id FROM building_type_def WHERE type='farm'),3,7,7)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('farm',(SELECT id FROM building_type_def WHERE type='farm'),4,12,12)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('shrine',(SELECT id FROM building_type_def WHERE type='temple'),1,0,1)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('temple',(SELECT id FROM building_type_def WHERE type='temple'),2,2,4)");
-    querylist.append("INSERT INTO building_def(name, type, size_, max_people, max_worker) VALUES('greattemple',(SELECT id FROM building_type_def WHERE type='temple'),3,4,8)");
-    executeQuerylist(querylist);
-}
-
-void Database::saveBuildingTypeDefs() {
-    QList<QString> querylist;
-    querylist.append("INSERT INTO building_type_def(type) VALUES('residence')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('farm')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('barn')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('stable')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('pigsty')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('cowshed')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('henhouse')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('tavern')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('hunting lodge')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('forge')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('temple')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('well')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('lumberjack hut')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('forester hut')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('quarry')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('weaving')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('mill')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('prison')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('market')");
-    querylist.append("INSERT INTO building_type_def(type) VALUES('town hall')");
-    executeQuerylist(querylist);
-}
-
 void Database::saveCharacter(Char *c) {
     if (db.open()) {
         QSqlQuery qry_name;
         QList<QString> querylist;
+        querylist.append("");
         int name_id;
-        qry_name.exec("SELECT id FROM first_names_def WHERE name='"+c->getFirstName()+"'");
+        qry_name.exec("SELECT id FROM first_name_def WHERE name='"+c->getFirstName()+"'");
         while (qry_name.next()) name_id = qry_name.value(0).toInt();
         QString query = "INSERT INTO people(x, y, last_name, first_name, gender, age, birthday, day_of_death, concept, virtue, vice, size_, ";
         query += "defense, speed, initiative, health, health_current, mana, mana_current, willpower, willpower_current, ";
@@ -177,141 +125,141 @@ void Database::saveCharacter(Char *c) {
     } else qDebug() << "Failed to connect to database." << db.lastError().text();
 }
 
-void Database::saveFieldDefs() {
-    QList<QString> querylist;
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('plain', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('field', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('grass', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('building', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('forest', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('swamp', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('bridge', 1)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('river', 0)");
-    querylist.append("INSERT INTO fields_def(type, passable) VALUES('lake', 0)");
-    executeQuerylist(querylist);
-}
-
-void Database::saveNames(int gender) {
-    QFile names;
-    if (gender == 1) names.setFileName(":/data/lists/names_male.list");
-    else names.setFileName(":/data/lists/names_female.list");
-    if (names.open(QIODevice::ReadOnly)) {
-        QTextStream in(&names);
-        QStringList list = in.readAll().split('\n');
-        QList<QString> querylist;
-        foreach(QString name, list) {
-            if (name != "")
-                querylist.append("INSERT INTO first_names_def(name, gender) VALUES('" + name + "', " + QString::number(gender) + ")");
-        }
-        names.close();
-        executeQuerylist(querylist);
-    }
-}
-
 void Database::saveProduction() {
     QString query;
     QList<QString> querylist;
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'farmhouse'),(SELECT id FROM production_type_def WHERE name = 'food'), 5, 0, 1, 0, 0, 0, 0, 0, 0)";
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'farmhouse'),(SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 1, 0, 0, 0, 0, 0, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'farmhouse'),(SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 1, 0, 0, 0, 0, 0, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 5, 0, 0, 0, 0, 0, 1, 0, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 1)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 1, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 1, 1)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 1, 0, 0, 0, 2, 0, 0, 0, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 0, 1)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 1, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 1, 1)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 0)";
+    querylist.append(query);
+    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'farmhouse'),(SELECT id FROM production_type_def WHERE name = 'food'), 5, 0, 1, 0, 0, 0, 0, 0, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 1, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'belief'), 5, 0, 0, 0, 0, 0, 1, 0, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 11, 0, 0, 0, 0, 0, 1, 1, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 2, 0, 0, 0, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'belief'), 7, 0, 0, 0, 0, 0, 1, 1, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 0, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'belief'), 9, 0, 0, 0, 0, 0, 1, 1, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 1, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'influence'), 1, 0, 0, 0, 2, 0, 0, 0, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 5, 0, 0, 0, 1, 0, 0, 1, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'influence'), 2, 0, 0, 0, 1, 0, 0, 0, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'influence'), 2, 0, 0, 0, 1, 0, 0, 1, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 11, 0, 0, 0, 0, 0, 1, 0, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE name = 'influence'), 3, 0, 0, 0, 1, 0, 0, 1, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 11, 0, 0, 0, 0, 0, 1, 1, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 14, 0, 0, 0, 0, 0, 1, 1, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 2, 0, 0, 0, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 9, 0, 0, 0, 0, 0, 1, 1, 0)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 4, 0, 0, 0, 1, 0, 0, 0, 1)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 11, 0, 0, 0, 0, 0, 1, 1, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 4, 0, 0, 0, 1, 0, 0, 1, 0)";
     querylist.append(query);
     query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 2, 0, 0, 0, 2, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 3, 0, 0, 0, 1, 0, 0, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 3, 0, 0, 0, 1, 0, 0, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 5, 0, 0, 0, 1, 0, 0, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 11, 0, 0, 0, 0, 0, 1, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 11, 0, 0, 0, 0, 0, 1, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'belief'), 14, 0, 0, 0, 0, 0, 1, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 3, 0, 0, 0, 2, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 4, 0, 0, 0, 1, 0, 0, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 4, 0, 0, 0, 1, 0, 0, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE name = 'influence'), 6, 0, 0, 0, 1, 0, 0, 1, 1)";
+    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 6, 0, 0, 0, 1, 0, 0, 1, 1)";
     querylist.append(query);
     executeQuerylist(querylist);
 }
 
-void Database::saveProductionTypeDefs() {
-    QList<QString> querylist;
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('food')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('drink')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('alcohol')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('influence')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('belief')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('tool')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('melee weapon')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('ranged weapon')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('wood')");
-    querylist.append("INSERT INTO production_type_def (name) VALUES ('stone')");
-    executeQuerylist(querylist);
+void Database::saveTypeLists(QString lists) {
+    QDirIterator sources(lists, QDirIterator::Subdirectories);
+    while (sources.hasNext()) {
+        QString currentFilename = sources.next();
+        QStringList parts = currentFilename.split('/');
+        QString tableName = parts.last();
+        tableName = tableName.split('.').first();
+        createTable(tableName);
+        QFile source(currentFilename);
+        if (source.open(QIODevice::ReadOnly)) {
+            QTextStream in(&source);
+            QStringList rows = in.readAll().split('\n');
+            QList<QString> querylist;
+            QString columnNames = rows.at(0);
+            parts = columnNames.split(",");
+            addColumn(tableName, parts.at(0), "VARCHAR(20)", true);
+            for (int i = 1; i < parts.size(); i++)
+                addColumn(tableName, parts.at(i), "INTEGER", true, "1");
+            for (int k = 1; k < rows.size(); k++) {
+                QString elem = rows.at(k);
+                if (elem != ""){
+                    parts = elem.split(",");
+                    QString query = "INSERT INTO " + tableName + "("+ columnNames + ") VALUES('" + parts.at(0) + "'";
+                    for (int l = 1; l < parts.size(); l++) query += "," + parts.at(l);
+                    query += ")";
+                    querylist.append(query);
+                }
+            }
+            source.close();
+            executeQuerylist(querylist);
+            if (rows.size() > 0) {
+                QStringList columns = columnNames.split(",");
+                QString values = rows.at(2);
+                parts = values.split(",");
+                for (int i = 0; i < parts.size(); i++) {
+                    values = parts.at(i);
+                    if (values.contains("SELECT")) {
+                        QString column = columns.at(i);
+                        addForeignKey(tableName, column.replace(" ",""), tableName.split("_def").first() + "_type_def", "id");
+                    }
+                }
+            }
+        }
+    }
 }
 
-void Database::saveVillageMap() {
+void Database::saveVillage() {
     QList<QString> querylist;
-    for (int x = 0; x < game->getWorldWidth(); x++) {
-        for (int y = 0; y < game->getWorldHeight(); y++) {
-            querylist.append("INSERT INTO village_map(x, y) VALUES("+ QString::number(x) + ", " + QString::number(y) +")");
+    for (int x = 0; x < game->getWorldMapWidth(); x++) {
+        for (int y = 0; y < game->getWorldMapHeight(); y++) {
+            querylist.append("INSERT INTO village(x, y) VALUES("+ QString::number(x) + ", " + QString::number(y) +")");
         }
     }
     executeQuerylist(querylist);
@@ -319,105 +267,82 @@ void Database::saveVillageMap() {
 
 bool Database::create() {
     if (db.open()) {
-        reset();
+        saveTypeLists(":/data/lists/type_def");
+        saveTypeLists(":/data/lists/def");
 
-        createTable("fields_def");
-        addColumn("fields_def", "type", "VARCHAR(10)", true);
-        addColumn("fields_def", "passable", "BOOL", true, "1");
-        saveFieldDefs();
-
-        createTable("village_map", "x,y");
-        addColumn("village_map", "fieldtype", "INTEGER", true, "1");
-        addForeignKey("village_map", "fieldtype", "fields_def", "id");
-        saveVillageMap();
-
-        createTable("first_names_def");
-        addColumn("first_names_def", "name", "VARCHAR(20)", true);
-        addColumn("first_names_def", "gender", "BOOL", true, "1");
-        saveNames(1);
-        saveNames(0);
+        createTable("village", "x,y");
+        addColumn("village", "fieldtype", "INTEGER", true, "1");
+        addForeignKey("village", "fieldtype", "field_def", "id");
+        saveVillage();
 
         createTable("people");
         addColumn("people", "x", "INTEGER", true);
         addColumn("people", "y", "INTEGER", true);
-        addForeignKey("people", "x,y", "village_map", "x,y", "people_location");
+        addForeignKey("people", "x,y", "village", "x,y", "people_location");
         /*addColumn("people", "last_name", "INTEGER", true);
-        addForeignKey("people", "last_name", "first_names_def", "id");*/
-        addColumn("people", "last_name", "VARCHAR(20)", true);
+        addForeignKey("people", "last_name", "first_name_def", "id");*/
+        addColumn("people", "last_name", "VARCHAR(20)", false);
         addColumn("people", "first_name", "INTEGER", true);
-        addForeignKey("people", "first_name", "first_names_def", "id");
-        addColumn("people", "gender", "BOOL", true, "1");
-        addColumn("people", "age", "TINYINT", true);
+        addForeignKey("people", "first_name", "first_name_def", "id");
+        addColumn("people", "gender", "SMALLINT", true, "1");
+        addColumn("people", "age", "SMALLINT", true);
         addColumn("people", "birthday", "VARCHAR(11)", true);
         addColumn("people", "day_of_death", "VARCHAR(11)", false, "NULL");
         addColumn("people", "concept", "VARCHAR(10)", false, "NULL");
         addColumn("people", "virtue", "VARCHAR(10)", false, "NULL");
         addColumn("people", "vice", "VARCHAR(10)", false, "NULL");
-        addColumn("people", "size_", "TINYINT", true, "5");
+        addColumn("people", "size_", "SMALLINT", true, "5");
         addColumn("people", "weight", "SMALLINT", true, "70");
-        addColumn("people", "defense", "TINYINT", true, "2");
-        addColumn("people", "speed", "TINYINT", true, "7");
-        addColumn("people", "initiative", "TINYINT", true, "2");
-        addColumn("people", "health", "TINYINT", true, "6");
-        addColumn("people", "health_current", "TINYINT", true, "6");
-        addColumn("people", "mana", "TINYINT", false, "NULL");
-        addColumn("people", "mana_current", "TINYINT", false, "NULL");
-        addColumn("people", "willpower", "TINYINT", true, "2");
-        addColumn("people", "willpower_current", "TINYINT", true, "2");
-        addColumn("people", "intelligence", "TINYINT", true, "1");
-        addColumn("people", "wits", "TINYINT", true, "1");
-        addColumn("people", "resolve", "TINYINT", true, "1");
-        addColumn("people", "strength", "TINYINT", true, "1");
-        addColumn("people", "dexterity", "TINYINT", true, "1");
-        addColumn("people", "stamina", "TINYINT", true, "1");
-        addColumn("people", "presence", "TINYINT", true, "1");
-        addColumn("people", "manipulation", "TINYINT", true, "1");
-        addColumn("people", "composure", "TINYINT", true, "1");
-        addColumn("people", "academics", "TINYINT", true, "-3");
-        addColumn("people", "crafts", "TINYINT", true, "-3");
-        addColumn("people", "investigation", "TINYINT", true, "-3");
-        addColumn("people", "magic", "TINYINT", true, "-3");
-        addColumn("people", "medicine", "TINYINT", true, "-3");
-        addColumn("people", "politics", "TINYINT", true, "-3");
-        addColumn("people", "science", "TINYINT", true, "-3");
-        addColumn("people", "spirituality", "TINYINT", true, "-3");
-        addColumn("people", "athletics", "TINYINT", true, "-1");
-        addColumn("people", "brawl", "TINYINT", true, "-1");
-        addColumn("people", "riding", "TINYINT", true, "-1");
-        addColumn("people", "ranged_combat", "TINYINT", true, "-1");
-        addColumn("people", "larceny", "TINYINT", true, "-1");
-        addColumn("people", "stealth", "TINYINT", true, "-1");
-        addColumn("people", "survival", "TINYINT", true, "-1");
-        addColumn("people", "weaponry", "TINYINT", true, "-1");
-        addColumn("people", "animal_ken", "TINYINT", true, "-1");
-        addColumn("people", "empathy", "TINYINT", true, "-1");
-        addColumn("people", "expression", "TINYINT", true, "-1");
-        addColumn("people", "intimidation", "TINYINT", true, "-1");
-        addColumn("people", "persuation", "TINYINT", true, "-1");
-        addColumn("people", "socialize", "TINYINT", true, "-1");
-        addColumn("people", "streetwise", "TINYINT", true, "-1");
-        addColumn("people", "subterfuge", "TINYINT", true, "-1");
-
-        createTable("building_type_def");
-        addColumn("building_type_def", "type", "VARCHAR(20)", 1);
-        saveBuildingTypeDefs();
-
-        createTable("building_def");
-        addColumn("building_def", "name", "VARCHAR(20)", true);
-        addColumn("building_def", "type", "INTEGER", true, "1");
-        addForeignKey("building_def", "type", "building_type_def", "id");
-        addColumn("building_def", "size_", "TINYINT", true, "2");
-        addColumn("building_def", "max_people", "TINYINT", true, "0");
-        addColumn("building_def", "max_worker", "TINYINT", true, "0");
-        saveBuildingDefs();
+        addColumn("people", "defense", "SMALLINT", true, "2");
+        addColumn("people", "speed", "SMALLINT", true, "7");
+        addColumn("people", "initiative", "SMALLINT", true, "2");
+        addColumn("people", "health", "SMALLINT", true, "6");
+        addColumn("people", "health_current", "SMALLINT", true, "6");
+        addColumn("people", "mana", "SMALLINT", false, "NULL");
+        addColumn("people", "mana_current", "SMALLINT", false, "NULL");
+        addColumn("people", "willpower", "SMALLINT", true, "2");
+        addColumn("people", "willpower_current", "SMALLINT", true, "2");
+        addColumn("people", "intelligence", "SMALLINT", true, "1");
+        addColumn("people", "wits", "SMALLINT", true, "1");
+        addColumn("people", "resolve", "SMALLINT", true, "1");
+        addColumn("people", "strength", "SMALLINT", true, "1");
+        addColumn("people", "dexterity", "SMALLINT", true, "1");
+        addColumn("people", "stamina", "SMALLINT", true, "1");
+        addColumn("people", "presence", "SMALLINT", true, "1");
+        addColumn("people", "manipulation", "SMALLINT", true, "1");
+        addColumn("people", "composure", "SMALLINT", true, "1");
+        addColumn("people", "academics", "SMALLINT", true, "-3");
+        addColumn("people", "crafts", "SMALLINT", true, "-3");
+        addColumn("people", "investigation", "SMALLINT", true, "-3");
+        addColumn("people", "magic", "SMALLINT", true, "-3");
+        addColumn("people", "medicine", "SMALLINT", true, "-3");
+        addColumn("people", "politics", "SMALLINT", true, "-3");
+        addColumn("people", "science", "SMALLINT", true, "-3");
+        addColumn("people", "spirituality", "SMALLINT", true, "-3");
+        addColumn("people", "athletics", "SMALLINT", true, "-1");
+        addColumn("people", "brawl", "SMALLINT", true, "-1");
+        addColumn("people", "riding", "SMALLINT", true, "-1");
+        addColumn("people", "ranged_combat", "SMALLINT", true, "-1");
+        addColumn("people", "larceny", "SMALLINT", true, "-1");
+        addColumn("people", "stealth", "SMALLINT", true, "-1");
+        addColumn("people", "survival", "SMALLINT", true, "-1");
+        addColumn("people", "weaponry", "SMALLINT", true, "-1");
+        addColumn("people", "animal_ken", "SMALLINT", true, "-1");
+        addColumn("people", "empathy", "SMALLINT", true, "-1");
+        addColumn("people", "expression", "SMALLINT", true, "-1");
+        addColumn("people", "intimidation", "SMALLINT", true, "-1");
+        addColumn("people", "persuation", "SMALLINT", true, "-1");
+        addColumn("people", "socialize", "SMALLINT", true, "-1");
+        addColumn("people", "streetwise", "SMALLINT", true, "-1");
+        addColumn("people", "subterfuge", "SMALLINT", true, "-1");
 
         createTable("buildings");
         addColumn("buildings", "x", "INTEGER", true);
         addColumn("buildings", "y", "INTEGER", true);
-        addForeignKey("buildings", "x,y", "village_map", "x,y", "buildings_location");
+        addForeignKey("buildings", "x,y", "village", "x,y", "buildings_location");
         addColumn("buildings", "building", "INTEGER", true);
         addForeignKey("buildings", "building", "building_def", "id");
-        addColumn("buildings", "condition_", "TINYINT", true, "100");
+        addColumn("buildings", "condition_", "SMALLINT", true, "100");
 
         createTable("building_own");
         addColumn("building_own", "building", "INTEGER", true);
@@ -425,61 +350,81 @@ bool Database::create() {
         addColumn("building_own", "owner", "INTEGER", true);
         addForeignKey("building_own", "owner", "people", "id");
 
-        createTable("production_type_def");
-        addColumn("production_type_def", "name", "VARCHAR(20)", true);
-        saveProductionTypeDefs();
-
         createTable("production");
         addColumn("production", "building", "INTEGER", true);
         addForeignKey("production", "building", "building_def", "id");
         addColumn("production", "type", "INTEGER", true);
         addForeignKey("production", "type", "production_type_def", "id");
-        addColumn("production", "amount", "TINYINT", true, "0");
-        addColumn("production", "academics", "TINYINT", true, "0");
-        addColumn("production", "crafts", "TINYINT", true, "0");
-        addColumn("production", "medicine", "TINYINT", true, "0");
-        addColumn("production", "politics", "TINYINT", true, "0");
-        addColumn("production", "science", "TINYINT", true, "0");
-        addColumn("production", "spirituality", "TINYINT", true, "0");
-        addColumn("production", "persuation", "TINYINT", true, "0");
-        addColumn("production", "subterfuge", "TINYINT", true, "0");
+        addColumn("production", "amount", "SMALLINT", true, "0");
+        addColumn("production", "academics", "SMALLINT", true, "0");
+        addColumn("production", "crafts", "SMALLINT", true, "0");
+        addColumn("production", "medicine", "SMALLINT", true, "0");
+        addColumn("production", "politics", "SMALLINT", true, "0");
+        addColumn("production", "science", "SMALLINT", true, "0");
+        addColumn("production", "spirituality", "SMALLINT", true, "0");
+        addColumn("production", "persuation", "SMALLINT", true, "0");
+        addColumn("production", "subterfuge", "SMALLINT", true, "0");
         saveProduction();
 
         createTable("animal_def");
-        addColumn("animal_def","type","VARCHAR(20)",true);
+        addColumn("animal_def", "type", "INTEGER", true);
+        addForeignKey("animal_def", "type", "animal_type_def", "id");
+        addColumn("animal_def","size_","SMALLINT", true);
+        addColumn("animal_def", "weight", "SMALLINT", true);
+        addColumn("animal_def","damage", "SMALLINT", true);
+        addColumn("animal_def","defense", "SMALLINT", true);
+        addColumn("animal_def", "speed", "SMALLINT", true);
+        addColumn("animal_def", "initiative", "SMALLINT", true);
+        addColumn("animal_def","health", "SMALLINT", true);
+        addColumn("animal_def","mana", "SMALLINT", false, "NULL");
+        addColumn("animal_def", "intelligence", "SMALLINT", true, "1");
+        addColumn("animal_def", "wits", "SMALLINT", true, "1");
+        addColumn("animal_def", "resolve", "SMALLINT", true, "1");
+        addColumn("animal_def", "strength", "SMALLINT", true, "1");
+        addColumn("animal_def", "dexterity", "SMALLINT", true, "1");
+        addColumn("animal_def", "stamina", "SMALLINT", true, "1");
+        addColumn("animal_def", "presence", "SMALLINT", true, "1");
+        addColumn("animal_def", "manipulation", "SMALLINT", true, "1");
+        addColumn("animal_def", "composure", "SMALLINT", true, "1");
+        addColumn("animal_def", "athletics", "SMALLINT", true, "-1");
+        addColumn("animal_def", "brawl", "SMALLINT", true, "-1");
+        addColumn("animal_def", "stealth", "SMALLINT", true, "-1");
+        addColumn("animal_def", "survival", "SMALLINT", true, "-1");
+        addColumn("animal_def", "intimidation", "SMALLINT", true, "-1");
 
         createTable("animals");
         addColumn("animals", "x", "INTEGER", true);
         addColumn("animals", "y", "INTEGER", true);
-        addForeignKey("animals", "x,y", "village_map", "x,y", "animals_location");
+        addForeignKey("animals", "x,y", "village", "x,y", "animals_location");
         addColumn("animals", "type", "INTEGER", true);
         addForeignKey("animals", "type", "animal_def", "id");
         addColumn("animals", "name", "VARCHAR(20)", true, "''");
         addColumn("animals", "birthday", "VARCHAR(11)", true);
         addColumn("animals", "day_of_death", "VARCHAR(11)", false, "NULL");
-        addColumn("animals","size_","TINYINT",true);
-        addColumn("animals", "weight", "SMALLINT", true);
-        addColumn("animals","defense", "TINYINT", true);
-        addColumn("animals", "speed", "TINYINT", true);
-        addColumn("animals", "initiative", "TINYINT", true);
-        addColumn("animals","health", "TINYINT", true);
-        addColumn("animals","health_current", "TINYINT", true);
-        addColumn("animals","mana", "TINYINT", false, "NULL");
-        addColumn("animals","mana_current", "TINYINT", false, "NULL");
-        addColumn("animals", "intelligence", "TINYINT", true, "1");
-        addColumn("animals", "wits", "TINYINT", true, "1");
-        addColumn("animals", "resolve", "TINYINT", true, "1");
-        addColumn("animals", "strength", "TINYINT", true, "1");
-        addColumn("animals", "dexterity", "TINYINT", true, "1");
-        addColumn("animals", "stamina", "TINYINT", true, "1");
-        addColumn("animals", "presence", "TINYINT", true, "1");
-        addColumn("animals", "manipulation", "TINYINT", true, "1");
-        addColumn("animals", "composure", "TINYINT", true, "1");
-        addColumn("animals", "athletics", "TINYINT", true, "-1");
-        addColumn("animals", "brawl", "TINYINT", true, "-1");
-        addColumn("animals", "stealth", "TINYINT", true, "-1");
-        addColumn("animals", "survival", "TINYINT", true, "-1");
-        addColumn("animals", "intimidation", "TINYINT", true, "-1");
+        addColumn("animals","health_current", "SMALLINT", true);
+        addColumn("animals","mana_current", "SMALLINT", false, "NULL");
+        addColumn("animals","size_","SMALLINT", false, "NULL");
+        addColumn("animals", "weight", "SMALLINT", false, "NULL");
+        addColumn("animals","damage", "SMALLINT", false, "NULL");
+        addColumn("animals","defense", "SMALLINT", false, "NULL");
+        addColumn("animals", "speed", "SMALLINT", false, "NULL");
+        addColumn("animals", "initiative", "SMALLINT", false, "NULL");
+        addColumn("animals","health", "SMALLINT", false, "NULL");
+        addColumn("animals","mana", "SMALLINT", false, "NULL");
+        addColumn("animals", "intelligence", "SMALLINT", false, "NULL");
+        addColumn("animals", "wits", "SMALLINT", false, "NULL");
+        addColumn("animals", "resolve", "SMALLINT", false, "NULL");
+        addColumn("animals", "strength", "SMALLINT", false, "NULL");
+        addColumn("animals", "dexterity", "SMALLINT", false, "NULL");
+        addColumn("animals", "stamina", "SMALLINT", false, "NULL");
+        addColumn("animals", "presence", "SMALLINT", false, "NULL");
+        addColumn("animals", "manipulation", "SMALLINT", false, "NULL");
+        addColumn("animals", "composure", "SMALLINT", false, "NULL");
+        addColumn("animals", "athletics", "SMALLINT", false, "NULL");
+        addColumn("animals", "brawl", "SMALLINT", false, "NULL");
+        addColumn("animals", "stealth", "SMALLINT", false, "NULL");
+        addColumn("animals", "survival", "SMALLINT", false, "NULL");
+        addColumn("animals", "intimidation", "SMALLINT", false, "NULL");
 
         createTable("animal_own");
         addColumn("animal_own", "animal", "INTEGER", true);
@@ -493,30 +438,27 @@ bool Database::create() {
         addColumn("animal_inv", "person", "INTEGER", true);
         addForeignKey("animal_inv", "person", "people", "id");
 
-        createTable("cloth_type_def");
-        addColumn("cloth_type_def", "type", "VARCHAR(20)", true);
-
         createTable("cloth_def");
         addColumn("cloth_def", "type", "INTEGER", true);
         addForeignKey("cloth_def", "type", "cloth_type_def", "id");
         addColumn("cloth_def", "weight", "SMALLINT", true);
-        addColumn("cloth_def", "condition_", "TINYINT", true, "10");
-        addColumn("cloth_def", "defense", "TINYINT", true, "0");
-        addColumn("cloth_def", "speed", "TINYINT", true, "0");
-        addColumn("cloth_def", "strength", "TINYINT", true, "0");
+        addColumn("cloth_def", "condition_", "SMALLINT", true, "10");
+        addColumn("cloth_def", "defense", "SMALLINT", true, "0");
+        addColumn("cloth_def", "speed", "SMALLINT", true, "0");
+        addColumn("cloth_def", "strength", "SMALLINT", true, "0");
 
         createTable("cloths");
         addColumn("cloths", "x", "INTEGER", true);
         addColumn("cloths", "y", "INTEGER", true);
-        addForeignKey("cloths", "x,y", "village_map", "x,y", "cloths_location");
+        addForeignKey("cloths", "x,y", "village", "x,y", "cloths_location");
         addColumn("cloths", "type", "INTEGER", true);
         addForeignKey("cloths", "type", "cloth_def", "id");
         addColumn("cloths", "weight", "SMALLINT", true);
         addColumn("cloths", "name", "VARCHAR(20)", true, "''");
-        addColumn("cloths", "condition_", "TINYINT", true, "10");
-        addColumn("cloths", "defense", "TINYINT", true, "0");
-        addColumn("cloths", "speed", "TINYINT", true, "0");
-        addColumn("cloths", "strength", "TINYINT", true, "0");
+        addColumn("cloths", "condition_", "SMALLINT", true, "10");
+        addColumn("cloths", "defense", "SMALLINT", true, "0");
+        addColumn("cloths", "speed", "SMALLINT", true, "0");
+        addColumn("cloths", "strength", "SMALLINT", true, "0");
 
         createTable("cloth_own");
         addColumn("cloth_own", "object", "INTEGER", true);
@@ -531,20 +473,24 @@ bool Database::create() {
         addForeignKey("cloth_inv", "person", "people", "id");
 
         createTable("food_def");
-        addColumn("food_def", "type", "VARCHAR(20)", true);
+        addColumn("food_def", "type", "INTEGER", true);
+        addForeignKey("food_def", "type", "food_type_def", "id");
+        addColumn("food_def", "weight", "SMALLINT", true);
+        addColumn("food_def", "health", "SMALLINT", true, "0");
+        addColumn("food_def", "mana", "SMALLINT", true, "0");
 
         createTable("food");
         addColumn("food", "x", "INTEGER", true);
         addColumn("food", "y", "INTEGER", true);
-        addForeignKey("food", "x,y", "village_map", "x,y", "food_location");
+        addForeignKey("food", "x,y", "village", "x,y", "food_location");
         addColumn("food", "type", "INTEGER", true);
         addForeignKey("food", "type", "food_def", "id");
-        addColumn("food", "weight", "SMALLINT", true);
-        addColumn("food", "name", "VARCHAR(20)", true, "''");
+        addColumn("food", "name", "VARCHAR(20)", false, "NULL");
         addColumn("food", "amount", "INTEGER", true, "1");
-        addColumn("food", "condition_", "TINYINT", true, "10");
-        addColumn("food", "health", "TINYINT", true, "0");
-        addColumn("food", "mana", "TINYINT", true, "0");
+        addColumn("food", "condition_", "SMALLINT", true, "10");
+        addColumn("food", "weight", "SMALLINT", false, "NULL");
+        addColumn("food", "health", "SMALLINT", false, "NULL");
+        addColumn("food", "mana", "SMALLINT", false, "NULL");
 
         createTable("food_own");
         addColumn("food_own", "object", "INTEGER", true);
@@ -564,7 +510,7 @@ bool Database::create() {
         createTable("resources");
         addColumn("resources", "x", "INTEGER", true);
         addColumn("resources", "y", "INTEGER", true);
-        addForeignKey("resources", "x,y", "village_map", "x,y", "resource_location");
+        addForeignKey("resources", "x,y", "village", "x,y", "resource_location");
         addColumn("resources", "type", "INTEGER", true);
         addForeignKey("resources", "type", "resource_def", "id");
         addColumn("resources", "weight", "SMALLINT", true);
@@ -588,7 +534,7 @@ bool Database::create() {
         createTable("stuff");
         addColumn("stuff", "x", "INTEGER", true);
         addColumn("stuff", "y", "INTEGER", true);
-        addForeignKey("stuff", "x,y", "village_map", "x,y", "stuff_location");
+        addForeignKey("stuff", "x,y", "village", "x,y", "stuff_location");
         addColumn("stuff", "type", "INTEGER", true);
         addForeignKey("stuff", "type", "stuff_def", "id");
         addColumn("stuff", "weight", "SMALLINT", true);
@@ -612,11 +558,11 @@ bool Database::create() {
         createTable("tools");
         addColumn("tools", "x", "INTEGER", true);
         addColumn("tools", "y", "INTEGER", true);
-        addForeignKey("tools", "x,y", "village_map", "x,y", "tools_location");
+        addForeignKey("tools", "x,y", "village", "x,y", "tools_location");
         addColumn("tools", "type", "INTEGER", true);
         addForeignKey("tools", "type", "tool_def", "id");
         addColumn("tools", "weight", "SMALLINT", true);
-        addColumn("tools", "condition_", "TINYINT", true, "10");
+        addColumn("tools", "condition_", "SMALLINT", true, "10");
 
         createTable("tool_own");
         addColumn("tool_own", "object", "INTEGER", true);
@@ -630,25 +576,22 @@ bool Database::create() {
         addColumn("tool_inv", "person", "INTEGER", true);
         addForeignKey("tool_inv", "person", "people", "id");
 
-        createTable("weapon_melee_type_def");
-        addColumn("weapon_melee_type_def", "type", "VARCHAR(20)", true);
-
         createTable("weapon_melee_def");
         addColumn("weapon_melee_def", "type", "INTEGER", true);
         addForeignKey("weapon_melee_def", "type", "weapon_melee_type_def", "id");
         addColumn("weapon_melee_def", "weight", "SMALLINT", true);
-        addColumn("weapon_melee_def", "condition_", "TINYINT", true, "10");
-        addColumn("weapon_melee_def", "damage", "TINYINT", true, "0");
-        addColumn("weapon_melee_def", "strength", "TINYINT", true, "0");
+        addColumn("weapon_melee_def", "condition_", "SMALLINT", true, "10");
+        addColumn("weapon_melee_def", "damage", "SMALLINT", true, "0");
+        addColumn("weapon_melee_def", "strength", "SMALLINT", true, "0");
 
         createTable("weapons_melee");
         addColumn("weapons_melee", "x", "INTEGER", true);
         addColumn("weapons_melee", "y", "INTEGER", true);
-        addForeignKey("weapons_melee", "x,y", "village_map", "x,y", "weapon_melee_location");
+        addForeignKey("weapons_melee", "x,y", "village", "x,y", "weapon_melee_location");
         addColumn("weapons_melee", "type", "INTEGER", true);
         addForeignKey("weapons_melee", "type", "weapon_melee_def", "id");
         addColumn("weapons_melee", "weight", "SMALLINT", true);
-        addColumn("weapons_melee", "condition_", "TINYINT", true, "10");
+        addColumn("weapons_melee", "condition_", "SMALLINT", true, "10");
 
         createTable("weapon_melee_own");
         addColumn("weapon_melee_own", "object", "INTEGER", true);
@@ -662,26 +605,23 @@ bool Database::create() {
         addColumn("weapon_melee_inv", "person", "INTEGER", true);
         addForeignKey("weapon_melee_inv", "person", "people", "id");
 
-        createTable("weapon_ranged_type_def");
-        addColumn("weapon_ranged_type_def", "type", "VARCHAR(20)", true);
-
         createTable("weapon_ranged_def");
         addColumn("weapon_ranged_def", "type", "INTEGER", true);
         addForeignKey("weapon_ranged_def", "type", "weapon_ranged_type_def", "id");
         addColumn("weapon_ranged_def", "range_", "SMALLINT", true);
         addColumn("weapon_ranged_def", "weight", "SMALLINT", true);
-        addColumn("weapon_ranged_def", "condition_", "TINYINT", true, "10");
-        addColumn("weapon_ranged_def", "damage", "TINYINT", true, "0");
-        addColumn("weapon_ranged_def", "strength", "TINYINT", true, "0");
+        addColumn("weapon_ranged_def", "condition_", "SMALLINT", true, "10");
+        addColumn("weapon_ranged_def", "damage", "SMALLINT", true, "0");
+        addColumn("weapon_ranged_def", "strength", "SMALLINT", true, "0");
 
         createTable("weapons_ranged");
         addColumn("weapons_ranged", "x", "INTEGER", true);
         addColumn("weapons_ranged", "y", "INTEGER", true);
-        addForeignKey("weapons_ranged", "x,y", "village_map", "x,y", "weapon_ranged_location");
+        addForeignKey("weapons_ranged", "x,y", "village", "x,y", "weapon_ranged_location");
         addColumn("weapons_ranged", "type", "INTEGER", true);
         addForeignKey("weapons_ranged", "type", "weapon_ranged_def", "id");
         addColumn("weapons_ranged", "weight", "SMALLINT", true);
-        addColumn("weapons_ranged", "condition_", "TINYINT", true, "10");
+        addColumn("weapons_ranged", "condition_", "SMALLINT", true, "10");
 
         createTable("weapon_ranged_own");
         addColumn("weapon_ranged_own", "object", "INTEGER", true);
@@ -694,9 +634,6 @@ bool Database::create() {
         addForeignKey("weapon_ranged_inv", "object", "weapons_ranged", "id");
         addColumn("weapon_ranged_inv", "person", "INTEGER", true);
         addForeignKey("weapon_ranged_inv", "person", "people", "id");
-
-        createTable("relationship_type_def");
-        addColumn("relationship_type_def", "type", "VARCHAR(20)", true);
 
         createTable("relationships");
         addColumn("relationships", "person1", "INTEGER", true);
@@ -713,42 +650,60 @@ bool Database::create() {
     return true;
 }
 
-void Database::executeQuerylist(QList<QString> querylist) {
-    if (saveInDatabase) {
-        QSqlQuery qry;
-        foreach (QString query, querylist) {
-            if (query != "") {
-                if (!qry.exec(query)) qDebug() << qry.lastError();
+void Database::executeQuerylist(QList<QString> querylist, bool suppressErrors) {
+    QSqlQuery qry;
+    for (int k = 0; k < querylist.size(); k++) {
+        QString query = querylist.at(k);
+        if (query != "") {
+            QStringList parts = query.split("|");
+            if (parts.size() == 1 || parts.last() == "" || parts.last() == db_type){
+                if (!qry.exec(parts.first())) {
+                    if (!suppressErrors) qDebug() << qry.lastError() << query;
+                    querylist.removeAt(k);
+                    k--;
+                }
             }
         }
     }
-    if (saveInFile) {
-        QFile sql(sqlFile);
-        sql.open(QFile::WriteOnly | QIODevice::Append);
-        QTextStream out(&sql);
-        foreach (QString query, querylist) {
-            if (query != "") out << query << ";" << endl;
-            else out << endl;
+    if (sqlFileFormats != "") {
+        QStringList formats = sqlFileFormats.split(",");
+        foreach (QString format, formats){
+            sqlFile = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + QStringLiteral("/village") + format + QStringLiteral(".sql");
+            QFile sql(sqlFile);
+            sql.open(QFile::WriteOnly | QIODevice::Append);
+            QTextStream out(&sql);
+            foreach (QString query, querylist) {
+                if (query != "") {
+                    QStringList parts = query.split("|");
+                    if (parts.size() == 1 || parts.last() == "" || parts.last() == format) {
+                        if (parts.first() != "/") out << parts.first() << ";" << endl;
+                        else out << parts.first() << endl;
+                    }
+                }
+                else out << endl;
+            }
         }
     }
 }
 
 bool Database::reset() {
     if (db.open()) {
+        if (sqlFileFormats != "") {
+            QStringList formats = sqlFileFormats.split(",");
+            foreach (QString format, formats){
+                sqlFile = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + QStringLiteral("/village") + format + QStringLiteral(".sql");
+                QFile sql(sqlFile); sql.open(QFile::WriteOnly | QFile::Text);
+            }
+        }
         QList<QString> querylist;
-        querylist.append("DROP DATABASE Loratien");
-        querylist.append("CREATE DATABASE Loratien");
-        querylist.append("USE Loratien");
-        if (saveInDatabase) {
-            QSqlQuery qry;
-            foreach (QString query, querylist) if (!qry.exec(query)) qDebug() << qry.lastError();
-        }
-        if (saveInFile) {
-            QFile sql(sqlFile);
-            sql.open(QFile::WriteOnly | QFile::Text);
-            QTextStream out(&sql);
-            foreach (QString query, querylist) out << query << ";" << endl;
-        }
+        QSqlQuery qry;
+        qry.exec("SHOW TABLES");
+        do {
+            querylist.clear();
+            while (qry.next()) querylist.append("DROP TABLE " + qry.value(0).toString());
+            executeQuerylist(querylist, true);
+            qry.exec("SHOW TABLES");
+        } while(qry.size() > 0);
     } else {
         qDebug() << "Failed to connect to database." << db.lastError().text();
         return false;
