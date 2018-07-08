@@ -16,7 +16,7 @@ Sector::Sector(int sectorCol, int sectorRow, QGraphicsItem *parent) : QGraphicsP
             if ((worldEarthStyle || (-1 < sectorCol+hexCol && sectorCol+hexCol < worldWidth))
                 && -1 < sectorRow+hexRow && sectorRow+hexRow < worldHeight) {
                 Hex *hex = game->getWorldMap()->at(sectorCol+hexCol).at(sectorRow+hexRow);
-                hex->setTempUsed(true);
+                hex->setUsed(true);
                 hexesCol.append(hex);
             }
         }
@@ -34,12 +34,14 @@ void Sector::drawSector() {
         for (int hexCol = 0; hexCol < hexes->size(); hexCol++) {
             for (int hexRow = 0; hexRow < hexes->at(hexCol).size(); hexRow++) {
                 Hex *currentHex = hexes->at(hexCol).at(hexRow);
-                int hexColRel = col - currentHex->getCol();
-                int hexRowRel = row - currentHex->getRow();
-                int posCol = hexSize * 1.5 * (hexColRel);
-                int posRow = hexSize * sqrt(3) * (hexRowRel) + sqrt(3)/2 * hexSize * (abs(hexColRel)%2);
-                currentHex->setTempUsed(true);
-                painter.drawPixmap(posCol, posRow, currentHex->getPic());
+                if (currentHex->getUsed()) {
+                    int hexColRel = col - currentHex->getCol();
+                    int hexRowRel = row - currentHex->getRow();
+                    int posCol = hexSize * 1.5 * (hexColRel);
+                    int posRow = hexSize * sqrt(3) * (hexRowRel) + sqrt(3)/2 * hexSize * (abs(hexColRel)%2);
+                    currentHex->setTempUsed(true);
+                    painter.drawPixmap(posCol, posRow, currentHex->getPic());
+                }
             }
         }
     painter.end();
@@ -68,5 +70,5 @@ void Sector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void Sector::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-   if (game->getWindow()->getRightClick()) game->getWindow()->dragWorldMap(event);
+   event->ignore();
 }

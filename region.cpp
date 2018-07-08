@@ -29,13 +29,13 @@ QList<Region *> Region::getNeighborRegions(int radius, bool withOriginRegion) {
     int worldHeight = game->getWorldHeight();
     int worldWidth = game->getWorldWidth();
     for (int modCol = -radius; modCol <= radius; modCol++) {
-            for (int modRow = -radius+abs(modCol)/2+(col%2)*(abs(modCol)%2); modRow <= radius-ceil(abs((double)modCol)/2)+(col%2)*(abs(modCol)%2); modRow++)  {
-                if ((withOriginRegion || modCol != 0 || modRow != 0) && (worldEarthStyle || (-1 < col+modCol && col+modCol < worldWidth))
-                    && -1 < row+modRow && row+modRow < worldHeight) {
-                        neighbors.append(game->getWorldRegions()->at((worldWidth+col+modCol) % worldWidth).at(row+modRow));
-                }
+        for (int modRow = -radius+abs(modCol)/2+(col%2)*(abs(modCol)%2); modRow <= radius-ceil(abs((double)modCol)/2)+(col%2)*(abs(modCol)%2); modRow++)  {
+            if ((withOriginRegion || modCol != 0 || modRow != 0) && (worldEarthStyle || (-1 < col+modCol && col+modCol < worldWidth))
+                && -1 < row+modRow && row+modRow < worldHeight) {
+                neighbors.append(game->getWorldRegions()->at((worldWidth+col+modCol) % worldWidth).at(row+modRow));
             }
         }
+    }
     return neighbors;
 }
 
@@ -88,7 +88,6 @@ void Region::draw(int factor) {
             painter.drawPolygon(hexagon);
         painter.end();
         setPixmap(pic);*/
-
 }
 
 void Region::hoverEnterEvent(QGraphicsSceneHoverEvent *event) {

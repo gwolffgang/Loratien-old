@@ -45,10 +45,9 @@ public:
     inline void setRightClick(bool newBool) {rightClick = newBool;}
 
     // methods
-    void dragWorldMap(QGraphicsSceneMouseEvent *event);
     void drawHexes(int radius, int hexSize);
-    void refresh();
-    void repositionGui(double offspringX, double offspringY);
+    void drawScreen();
+    void drawSectors(int radius, int sectorSize);
     void setupGui();
 
 private:

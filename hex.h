@@ -37,6 +37,7 @@ public:
     inline double getTempNumber() const {return tempNumber;}
     inline bool getTempUsed() const {return tempUsed;}
     inline QString getType() const {return type;}
+    inline bool getUsed() const {return used;}
 
     // setter
     inline void setAltitude(const double newAltitude) {altitude = newAltitude;}
@@ -63,6 +64,7 @@ public:
     inline void setTempNumber(const double temporaryNumber) {tempNumber = temporaryNumber;}
     inline void setTempUsed(const bool temporaryUsage) {tempUsed = temporaryUsage;}
     inline void setType(const QString newType) {type = newType;}
+    inline void setUsed(const bool usage) {used = usage;}
 
     // methods
     void draw(int size = -1);
@@ -87,7 +89,7 @@ private:
     int col, row, tectonicPlate, tectonicDirection, fertility, riverSize;
     double altitude;
     QString type, climate;
-    bool lake, river;
+    bool used, lake, river;
     double tempNumber;
     Hex *tempLink;
     bool tempUsed;

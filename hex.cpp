@@ -7,7 +7,7 @@ extern Loratien *game;
 Hex::Hex(int hexCol, int hexRow, QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
     brush(QBrush(QColor(0, 0, 0), Qt::SolidPattern)), fogOfWar(true), border(QPen(Qt::black)),
     col(hexCol), row(hexRow), tectonicPlate(-1), tectonicDirection(-1), fertility(0), riverSize(0), altitude(-99),
-    type(""), climate(""), lake(false), river(false),
+    type(""), climate(""), used(false), lake(false), river(false),
     tempNumber(9999), tempLink(NULL), tempUsed(false),
     lineDir1(NULL), lineDir2(NULL), lineDir3(NULL), lineDir4(NULL), lineDir5(NULL), lineDir6(NULL) {
     setAcceptHoverEvents(true); // allow special mouse events
@@ -91,18 +91,19 @@ void Hex::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 void Hex::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     game->getWindow()->setRightClick(false);
     game->getWindow()->setLeftClick(false);
-    if (event->button() == Qt::RightButton) {
+    if (event->button() == Qt::RightButton)
         game->getWindow()->setRightClick(true);
-    }
     if (event->button() == Qt::LeftButton) {
         game->getWindow()->setLeftClick(true);
         Hex *selectedHexWorldMap = game->getWindow()->getGuiHexInfo()->getSelectedHexWorldMap();
-        selectedHexWorldMap->setBorder(QPen(Qt::black));
+        selectedHexWorldMap->setBorder(QPen(Qt::black, 1, Qt::SolidLine));
         selectedHexWorldMap->draw();
         this->setBorder(QPen(Qt::red, 2, Qt::SolidLine));
         this->draw();
+        game->getPlayer()->setLocation(this);
+        game->getGroup()->setLocation(this);
         game->getWindow()->getGuiHexInfo()->setSelectedHex(this);
-        game->getWindow()->refresh();
+        game->getWindow()->drawScreen();
     }
     game->getWindow()->setMousePos(event->pos());
 }
