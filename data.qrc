@@ -11,5 +11,7 @@
         <file>data/lists/type_def/relationship_type_def.list</file>
         <file>data/lists/type_def/weapon_melee_type_def.list</file>
         <file>data/lists/type_def/weapon_ranged_type_def.list</file>
+        <file>data/lists/def/production_def.list</file>
+        <file>data/lists/def/weapon_ranged_def.list</file>
     </qresource>
 </RCC>

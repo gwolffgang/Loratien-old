@@ -8,7 +8,7 @@ class Gui : public QGraphicsPixmapItem {
 private:
     // attributes
     QPixmap pic;
-    double xPos, yPos, width, height;
+    double posX, posY, width, height;
     Hex *selectedHexGui, *selectedHexWorldMap;
 
 public:

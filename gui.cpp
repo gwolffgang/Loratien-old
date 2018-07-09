@@ -4,13 +4,13 @@
 extern Loratien *game;
 
 Gui::Gui(QString type, double x, double y, double w, double h, QGraphicsItem *parent) : QGraphicsPixmapItem(parent),
-    xPos(x), yPos(y), width(w), height(h), selectedHexGui(NULL), selectedHexWorldMap(NULL) {
+    posX(x), posY(y), width(w), height(h), selectedHexGui(NULL), selectedHexWorldMap(NULL) {
     pic = QPixmap(width, height);
     pic.fill(Qt::transparent);
     QPainter painter(&pic);
         painter.setPen(Qt::black);
         painter.setBrush(Qt::darkGray);
-        painter.drawRect(xPos, yPos, width, height);
+        painter.drawRect(posX, posY, width, height);
     painter.end();
     setPixmap(pic);
 
@@ -37,7 +37,7 @@ void Gui::setSelectedHex(Hex *hex) {
 void Gui::setupGuiHexInfo() {
     Hex *selectedHexWorldMap = game->getPlayer()->getLocation();
     setSelectedHex(selectedHexWorldMap);
-    selectedHexGui->setPos(xPos+10, yPos+10);
+    selectedHexGui->setPos(posX+10, posY+10);
     selectedHexWorldMap->setBorder(QPen(Qt::red, 2, Qt::SolidLine));
     selectedHexWorldMap->draw();
 }

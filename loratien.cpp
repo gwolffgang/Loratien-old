@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 
 Loratien::Loratien() :
-    window(NULL), database(NULL), playzoneRadius(10), regionRadius(2), sectorRadius(2), hexSize(0), worldWidth(2), worldHeight(2),
+    window(NULL), database(NULL), playzoneRadius(10), regionRadius(4), sectorRadius(4), hexSize(0), worldWidth(2), worldHeight(2),
     worldEarthStyle(false), percentOcean(0.60), percentMountain(0.15), percentMountainPeak(0.01), worldAltMax(10), worldAltMin(-10),
     worldRivers(10), worldTectonicPlates(10),
     worldMap(new QList<QList<Hex*>>), worldRegions(new QList<QList<Region*>>), rivers(new QList<River*>), lakes(new QList<Lake*>), springs(new QList<Hex*>),

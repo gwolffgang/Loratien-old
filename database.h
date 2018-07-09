@@ -34,8 +34,7 @@ public:
 
     // inserts
     void saveCharacter(Char *c);
-    void saveProduction();
-    void saveTypeLists(QString lists);
+    void saveLists(QString lists);
     void saveVillage();
 
     // updates
@@ -43,6 +42,7 @@ public:
     // methods
     bool create();
     void executeQuerylist(QList<QString> querylist, bool suppressErrors = false);
+    inline bool isNumeric(QString string) { string.replace(" ", ""); for (int i = 0; i < string.size(); i++) if (!string[i].isDigit()) return false; return true; }
     bool reset();
 };
 

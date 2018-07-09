@@ -60,6 +60,8 @@ void Database::dropTable(QString tableName) {
 
 void Database::addColumn(QString tableName, QString columnName, QString dataType, bool notNull, QString defaultValue) {
     QList<QString> querylist;
+    tableName.replace(" ", "");
+    columnName.replace(" ", "");
     QString query = "ALTER TABLE " + tableName + " ADD " + columnName + " " + dataType;
     if (defaultValue != "") query += " DEFAULT " + defaultValue;
     if (notNull) query += " NOT NULL";
@@ -69,6 +71,7 @@ void Database::addColumn(QString tableName, QString columnName, QString dataType
 
 void Database::addForeignKey(QString tableName, QString columnName, QString linkedTable, QString linkedColumn, QString altName) {
     QList<QString> querylist;
+    columnName.replace(" ", "");
     QString query = "ALTER TABLE " + tableName + " ADD CONSTRAINT ";
     if (altName != "") query += "FK_" + altName;
     else query += "FK_" + tableName + "_" + columnName;
@@ -125,132 +128,57 @@ void Database::saveCharacter(Char *c) {
     } else qDebug() << "Failed to connect to database." << db.lastError().text();
 }
 
-void Database::saveProduction() {
-    QString query;
-    QList<QString> querylist;
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'farmhouse'),(SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 1, 0, 0, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'farmhouse'),(SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 1, 0, 0, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 5, 0, 0, 0, 0, 0, 1, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 1, 0, 0, 0, 2, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'shrine'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge) ";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 11, 0, 0, 0, 0, 0, 1, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 2, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'temple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 5, 0, 0, 0, 1, 0, 0, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 11, 0, 0, 0, 0, 0, 1, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 11, 0, 0, 0, 0, 0, 1, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'belief'), 14, 0, 0, 0, 0, 0, 1, 1, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 2, 0, 0, 0, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 4, 0, 0, 0, 1, 0, 0, 0, 1)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 4, 0, 0, 0, 1, 0, 0, 1, 0)";
-    querylist.append(query);
-    query  = "INSERT INTO production(building, type, amount, academics, crafts, medicine, politics, science, spirituality, persuation, subterfuge)";
-    query += "VALUES((SELECT id FROM building_def WHERE name = 'greattemple'),(SELECT id FROM production_type_def WHERE type = 'influence'), 6, 0, 0, 0, 1, 0, 0, 1, 1)";
-    querylist.append(query);
-    executeQuerylist(querylist);
-}
-
-void Database::saveTypeLists(QString lists) {
+void Database::saveLists(QString lists) {
     QDirIterator sources(lists, QDirIterator::Subdirectories);
-    while (sources.hasNext()) {
-        QString currentFilename = sources.next();
-        QStringList parts = currentFilename.split('/');
+    QList<QString> list;
+    while (sources.hasNext()) list.append(sources.next());
+    std::stable_sort(list.begin(), list.end());
+    foreach (QString currentFilename, list) {
+        QStringList parts = currentFilename.split("/");
         QString tableName = parts.last();
-        tableName = tableName.split('.').first();
+        tableName = tableName.split(".").first();
         createTable(tableName);
         QFile source(currentFilename);
         if (source.open(QIODevice::ReadOnly)) {
             QTextStream in(&source);
-            QStringList rows = in.readAll().split('\n');
+            QStringList rows = in.readAll().split("\n");
             QList<QString> querylist;
             QString columnNames = rows.at(0);
-            parts = columnNames.split(",");
-            addColumn(tableName, parts.at(0), "VARCHAR(20)", true);
-            for (int i = 1; i < parts.size(); i++)
-                addColumn(tableName, parts.at(i), "INTEGER", true, "1");
+            QStringList columns = columnNames.split(",");
+            QString valuesRow = rows.at(3);
+            QStringList values = valuesRow.split(",");
+            for (int i = 0; i < values.size(); i++) {
+                QString value = values.at(i);
+                if (isNumeric(value)) addColumn(tableName, columns.at(i), "INTEGER", true);
+                else if (value.toUpper().contains("SELECT")) {
+                    QStringList parts = value.toLower().split(" from ");
+                    QString keyId = parts.first();
+                    QString keyTable = parts.last();
+                    parts = keyId.split("select ");
+                    keyId = parts.last();
+                    parts = keyTable.split(" where");
+                    keyTable = parts.first();
+                    addColumn(tableName, columns.at(i), "INTEGER", true);
+                    addForeignKey(tableName, columns.at(i), keyTable, keyId);
+                } else addColumn(tableName, columns.at(i), "VARCHAR(20)", true);
+            }
             for (int k = 1; k < rows.size(); k++) {
                 QString elem = rows.at(k);
                 if (elem != ""){
                     parts = elem.split(",");
-                    QString query = "INSERT INTO " + tableName + "("+ columnNames + ") VALUES('" + parts.at(0) + "'";
-                    for (int l = 1; l < parts.size(); l++) query += "," + parts.at(l);
+                    QString query = "INSERT INTO " + tableName + "("+ columnNames + ") VALUES(";
+                    for (int l = 0; l < parts.size(); l++) {
+                        if (0 < l) query += ",";
+                        QString string = parts.at(l);
+                        if (isNumeric(string) || string.contains("SELECT")) query += string;
+                        else query += "'" + string + "'";
+                    }
                     query += ")";
                     querylist.append(query);
                 }
             }
             source.close();
             executeQuerylist(querylist);
-            if (rows.size() > 0) {
-                QStringList columns = columnNames.split(",");
-                QString values = rows.at(2);
-                parts = values.split(",");
-                for (int i = 0; i < parts.size(); i++) {
-                    values = parts.at(i);
-                    if (values.contains("SELECT")) {
-                        QString column = columns.at(i);
-                        addForeignKey(tableName, column.replace(" ",""), tableName.split("_def").first() + "_type_def", "id");
-                    }
-                }
-            }
         }
     }
 }
@@ -267,12 +195,12 @@ void Database::saveVillage() {
 
 bool Database::create() {
     if (db.open()) {
-        saveTypeLists(":/data/lists/type_def");
-        saveTypeLists(":/data/lists/def");
+        saveLists(":/data/lists/type_def");
+        saveLists(":/data/lists/def");
 
         createTable("village", "x,y");
-        addColumn("village", "fieldtype", "INTEGER", true, "1");
-        addForeignKey("village", "fieldtype", "field_def", "id");
+        addColumn("village", "type", "INTEGER", true, "1");
+        addForeignKey("village", "type", "field_def", "id");
         saveVillage();
 
         createTable("people");
@@ -364,7 +292,6 @@ bool Database::create() {
         addColumn("production", "spirituality", "SMALLINT", true, "0");
         addColumn("production", "persuation", "SMALLINT", true, "0");
         addColumn("production", "subterfuge", "SMALLINT", true, "0");
-        saveProduction();
 
         createTable("animal_def");
         addColumn("animal_def", "type", "INTEGER", true);
@@ -604,15 +531,6 @@ bool Database::create() {
         addForeignKey("weapon_melee_inv", "object", "weapons_melee", "id");
         addColumn("weapon_melee_inv", "person", "INTEGER", true);
         addForeignKey("weapon_melee_inv", "person", "people", "id");
-
-        createTable("weapon_ranged_def");
-        addColumn("weapon_ranged_def", "type", "INTEGER", true);
-        addForeignKey("weapon_ranged_def", "type", "weapon_ranged_type_def", "id");
-        addColumn("weapon_ranged_def", "range_", "SMALLINT", true);
-        addColumn("weapon_ranged_def", "weight", "SMALLINT", true);
-        addColumn("weapon_ranged_def", "condition_", "SMALLINT", true, "10");
-        addColumn("weapon_ranged_def", "damage", "SMALLINT", true, "0");
-        addColumn("weapon_ranged_def", "strength", "SMALLINT", true, "0");
 
         createTable("weapons_ranged");
         addColumn("weapons_ranged", "x", "INTEGER", true);

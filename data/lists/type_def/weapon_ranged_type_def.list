@@ -1,12 +1,5 @@
 type
 
-longbow
-shortbow
+bow
 crossbow
-throwing axe
-throwing spear
-throwing knife
-discus
-boomerang
-dart
-stone
+throwing weapon

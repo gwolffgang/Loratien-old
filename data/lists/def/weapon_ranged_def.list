@@ -1,0 +1,8 @@
+name, type, size_, range_, strength, damage
+
+crossbow, (SELECT id FROM weapon_ranged_type_def WHERE type = 'crossbow'), 3, 4, 3, 4
+longbow, (SELECT id FROM weapon_ranged_type_def WHERE type = 'bow'), 3, 4, 2, 3
+shortbow, (SELECT id FROM weapon_ranged_type_def WHERE type = 'bow'), 2, 3, 2, 3
+stone, (SELECT id FROM weapon_ranged_type_def WHERE type = 'throwing weapon'), 1, 1, 1, 1
+knife, (SELECT id FROM weapon_ranged_type_def WHERE type = 'throwing weapon'), 1, 2, 1, 2
+hatchet, (SELECT id FROM weapon_ranged_type_def WHERE type = 'throwing weapon'), 1, 2, 2, 3

@@ -1,0 +1,75 @@
+building, type, amount, academics, crafts, medicine, politics, science, spirituality, ranged_combat, weaponry, animal_ken, persuation
+
+(SELECT id FROM building_def WHERE name = 'shrine'), (SELECT id FROM production_type_def WHERE type = 'influence'), 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'shrine'), (SELECT id FROM production_type_def WHERE type = 'belief'), 5, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'temple'), (SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'temple'), (SELECT id FROM production_type_def WHERE type = 'belief'), 7, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'greattemple'), (SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'greattemple'), (SELECT id FROM production_type_def WHERE type = 'belief'), 9, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'farmhouse'), (SELECT id FROM production_type_def WHERE type = 'drink'), 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'farmhouse'), (SELECT id FROM production_type_def WHERE type = 'food'), 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'farmhouse'), (SELECT id FROM production_type_def WHERE type = 'food'), 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'farm'), (SELECT id FROM production_type_def WHERE type = 'drink'), 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'farm'), (SELECT id FROM production_type_def WHERE type = 'food'), 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'farm'), (SELECT id FROM production_type_def WHERE type = 'food'), 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hunting hut'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'hunting hut'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hunting box'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hunting box'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'hunting lodge'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hunting lodge'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'small forge'), (SELECT id FROM production_type_def WHERE type = 'iron'), 7, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'forge'), (SELECT id FROM production_type_def WHERE type = 'iron'), 10, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'big forge'), (SELECT id FROM production_type_def WHERE type = 'iron'), 15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'henhouse'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'barn'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'pigsty'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'cowshed'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'pigsty'), (SELECT id FROM production_type_def WHERE type = 'food'), 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+(SELECT id FROM building_def WHERE name = 'fountain'), (SELECT id FROM production_type_def WHERE type = 'drink'), 20, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'well'), (SELECT id FROM production_type_def WHERE type = 'drink'), 20, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'cistern'), (SELECT id FROM production_type_def WHERE type = 'drink'), 40, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'fountain'), (SELECT id FROM production_type_def WHERE type = 'security'), 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'well'), (SELECT id FROM production_type_def WHERE type = 'security'), 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'cistern'), (SELECT id FROM production_type_def WHERE type = 'security'), 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'small tavern'), (SELECT id FROM production_type_def WHERE type = 'food'), 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'small tavern'), (SELECT id FROM production_type_def WHERE type = 'drink'), 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'small tavern'), (SELECT id FROM production_type_def WHERE type = 'alcohol'), 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'small tavern'), (SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'tavern'), (SELECT id FROM production_type_def WHERE type = 'food'), 4, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'tavern'), (SELECT id FROM production_type_def WHERE type = 'drink'), 4, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'tavern'), (SELECT id FROM production_type_def WHERE type = 'alcohol'), 4, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'tavern'), (SELECT id FROM production_type_def WHERE type = 'influence'), 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'big tavern'), (SELECT id FROM production_type_def WHERE type = 'food'), 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'big tavern'), (SELECT id FROM production_type_def WHERE type = 'drink'), 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'big tavern'), (SELECT id FROM production_type_def WHERE type = 'alcohol'), 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'big tavern'), (SELECT id FROM production_type_def WHERE type = 'influence'), 6, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'inn'), (SELECT id FROM production_type_def WHERE type = 'food'), 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'inn'), (SELECT id FROM production_type_def WHERE type = 'drink'), 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'inn'), (SELECT id FROM production_type_def WHERE type = 'alcohol'), 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'inn'), (SELECT id FROM production_type_def WHERE type = 'influence'), 3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'bar'), (SELECT id FROM production_type_def WHERE type = 'food'), 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'bar'), (SELECT id FROM production_type_def WHERE type = 'drink'), 4, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'bar'), (SELECT id FROM production_type_def WHERE type = 'alcohol'), 8, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'bar'), (SELECT id FROM production_type_def WHERE type = 'influence'), 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hostel'), (SELECT id FROM production_type_def WHERE type = 'food'), 8, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hostel'), (SELECT id FROM production_type_def WHERE type = 'drink'), 8, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hostel'), (SELECT id FROM production_type_def WHERE type = 'alcohol'), 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'hostel'), (SELECT id FROM production_type_def WHERE type = 'influence'), 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'sentry'), (SELECT id FROM production_type_def WHERE type = 'security'), 10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'sentry'), (SELECT id FROM production_type_def WHERE type = 'security'), 10, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'guardroom'), (SELECT id FROM production_type_def WHERE type = 'security'), 15, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'guardroom'), (SELECT id FROM production_type_def WHERE type = 'security'), 5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'lookout'), (SELECT id FROM production_type_def WHERE type = 'security'), 5, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'lookout'), (SELECT id FROM production_type_def WHERE type = 'security'), 12, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'watchtower'), (SELECT id FROM production_type_def WHERE type = 'security'), 7, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'watchtower'), (SELECT id FROM production_type_def WHERE type = 'security'), 15, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'lumberjack shelter'), (SELECT id FROM production_type_def WHERE type = 'wood'), 10, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'lumberjack hut'), (SELECT id FROM production_type_def WHERE type = 'wood'), 10, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'lumberjack house'), (SELECT id FROM production_type_def WHERE type = 'wood'), 10, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+(SELECT id FROM building_def WHERE name = 'quarry lodge'), (SELECT id FROM production_type_def WHERE type = 'stone'), 10, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'town hall'), (SELECT id FROM production_type_def WHERE type = 'influence'), 10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'town hall'), (SELECT id FROM production_type_def WHERE type = 'security'), 10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'wind mill'), (SELECT id FROM production_type_def WHERE type = 'food'), 10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+(SELECT id FROM building_def WHERE name = 'water mill'), (SELECT id FROM production_type_def WHERE type = 'food'), 10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+
